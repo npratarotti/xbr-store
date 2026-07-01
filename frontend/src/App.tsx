@@ -1,5 +1,7 @@
 import { Header } from "./shared/components/layout/Header";
 import { Hero } from "./shared/components/sections/Hero";
+import { FeaturedProducts } from "./shared/components/sections/FeaturedProducts";
+import { Categories } from "./shared/components/sections/Categories";
 
 function App() {
   return (
@@ -8,6 +10,8 @@ function App() {
 
       <main>
         <Hero />
+        <FeaturedProducts />
+        <Categories />
       </main>
     </div>
   );
