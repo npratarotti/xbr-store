@@ -1,0 +1,33 @@
+@theme {
+
+    /* Brand */
+  
+    --color-primary: #7C3AED;
+    --color-primary-light: #A855F7;
+    --color-primary-dark: #5B21B6;
+  
+    /* Background */
+  
+    --color-background: #09090B;
+    --color-surface: #18181B;
+    --color-card: #27272A;
+  
+    /* Text */
+  
+    --color-text: #FAFAFA;
+    --color-muted: #A1A1AA;
+  
+    /* Border */
+  
+    --color-border: #3F3F46;
+  
+    /* Radius */
+  
+    --radius-card: 24px;
+  
+    /* Shadow */
+  
+    --shadow-soft:
+      0 10px 40px rgba(0,0,0,.35);
+  
+  }
