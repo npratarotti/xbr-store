@@ -2,64 +2,108 @@ import { Container } from "../Container";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
+    <header
+      className="
+        fixed
+        top-0
+        left-0
+        right-0
+        z-50
+        border-b
+        border-white/10
+        bg-black/50
+        backdrop-blur-2xl
+      "
+    >
       <Container>
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-24 items-center justify-between">
 
           {/* Logo */}
 
           <div>
-            <h1 className="text-3xl font-black text-violet-500">
-              XBR
+
+            <h1 className="text-4xl font-black tracking-tight">
+
+              <span className="text-white">
+                X
+              </span>
+
+              <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+                BR
+              </span>
+
             </h1>
 
-            <p className="text-xs text-zinc-500">
-              Store
+            <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">
+              Premium Store
             </p>
+
           </div>
 
           {/* Busca */}
 
-          <div className="hidden w-full max-w-xl px-10 md:block">
+          <div className="hidden w-full max-w-xl px-10 lg:block">
+
             <input
               type="text"
               placeholder="Buscar produtos..."
               className="
                 w-full
-                rounded-xl
+                rounded-2xl
                 border
-                border-zinc-700
-                bg-zinc-900
-                px-5
-                py-3
+                border-white/10
+                bg-white/5
+                px-6
+                py-3.5
                 text-sm
+                text-white
+                placeholder:text-zinc-500
                 outline-none
-                transition
+                transition-all
+                duration-300
                 focus:border-violet-500
+                focus:bg-white/10
+                focus:shadow-[0_0_35px_rgba(139,92,246,.35)]
               "
             />
+
           </div>
 
           {/* Menu */}
 
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-5">
 
-            <button className="text-sm text-zinc-300 hover:text-white transition">
+            <button
+              className="
+                text-sm
+                font-medium
+                text-zinc-300
+                transition
+                hover:text-white
+              "
+            >
               Login
             </button>
 
             <button
               className="
-                rounded-xl
-                bg-violet-600
-                px-5
-                py-2
-                font-medium
-                hover:bg-violet-700
-                transition
+                rounded-2xl
+                bg-gradient-to-r
+                from-violet-600
+                to-fuchsia-600
+                px-6
+                py-3
+                font-semibold
+                text-white
+                shadow-lg
+                shadow-violet-700/30
+                transition-all
+                duration-300
+                hover:scale-105
+                hover:shadow-violet-500/50
               "
             >
-              Carrinho
+              🛒 Carrinho
             </button>
 
           </nav>

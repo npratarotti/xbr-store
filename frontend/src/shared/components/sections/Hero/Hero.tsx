@@ -3,72 +3,77 @@ import { Container } from "../../layout/Container";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-white py-32">
+<section className="relative overflow-hidden bg-[#09090B] pt-28">
+      {/* Luzes do fundo */}
+      <div className="absolute inset-0">
 
-      {/* Fundo */}
-      <div className="absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-20 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-violet-700/25 blur-[160px]" />
 
-        {/* Imagem */}
-        <img
-          src="/images/lnotebook-gamer.webp"
-          alt="Notebook Gamer"
-          className="h-full w-full object-cover object-right opacity-10"
-        />
-
-        {/* Gradiente */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-white/90 to-white" />
-
-        {/* Glow roxo */}
-        <div className="absolute left-1/2 top-20 h-96 w-96 -translate-x-1/2 rounded-full bg-violet-500/20 blur-[140px]" />
+        <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-fuchsia-500/10 blur-[150px]" />
 
       </div>
 
       <Container>
-        <div className="flex flex-col items-center text-center">
 
-          <span className="mb-6 rounded-full border border-violet-500/30 bg-violet-500/10 px-5 py-2 text-sm font-medium text-violet-600">
-            🚀 Bem-vindo à XBR Store
-          </span>
+        <div className="relative grid min-h-screen items-center gap-20 lg:grid-cols-2">
 
-          <h1 className="max-w-5xl text-6xl font-black leading-tight tracking-tight md:text-8xl">
-            Tecnologia que
-            <span className="block bg-gradient-to-r from-violet-700 to-fuchsia-500 bg-clip-text text-transparent">
-              impulsiona o seu futuro.
+          {/* Texto */}
+
+          <div>
+
+            <span className="inline-block rounded-full border border-violet-500/30 bg-violet-500/10 px-5 py-2 text-sm font-medium text-violet-300">
+              🚀 Bem-vindo à XBR Store
             </span>
-          </h1>
 
-          <p className="mt-8 max-w-3xl text-xl leading-8 text-zinc-600">
-            Descubra produtos cuidadosamente selecionados para quem busca inovação,
-            desempenho e uma experiência de compra diferenciada.
-          </p>
+            <h1 className="mt-8 text-6xl font-black leading-tight text-white lg:text-7xl">
+              Tecnologia que
+              <span className="block bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+                impulsiona o seu futuro.
+              </span>
+            </h1>
 
-          <div className="mt-12 flex flex-wrap justify-center gap-5">
+            <p className="mt-8 max-w-xl text-lg leading-8 text-zinc-400">
+              Produtos premium para quem busca desempenho,
+              inovação e uma experiência de compra diferenciada.
+            </p>
 
-            <Button>
-              Explorar Produtos
-            </Button>
+            <div className="mt-10 flex gap-5">
 
-            <button
-              className="
-                rounded-xl
-                border
-                border-zinc-300
-                bg-white
-                px-7
-                py-3
-                font-semibold
-                shadow-sm
-                transition-all
-                hover:border-violet-500
-                hover:shadow-lg
-              "
-            >
-              Ver Ofertas
-            </button>
+              <Button>
+                Explorar Produtos
+              </Button>
+
+              <button className="rounded-xl border border-zinc-700 px-6 py-3 font-semibold text-white transition hover:border-violet-500">
+                Ver ofertas
+              </button>
+
+            </div>
 
           </div>
 
+          {/* Notebook */}
+
+          <div className="relative flex justify-center lg:justify-end">
+
+  <img
+    src="/images/hero/hero-notebook.png"
+    alt="Notebook Gamer"
+    className="
+      w-[140%]
+      max-w-[900px]
+      lg:translate-x-20
+      xl:translate-x-28
+      drop-shadow-[0_70px_120px_rgba(124,58,237,0.55)]
+      animate-float
+      select-none
+      pointer-events-none
+    "
+  />
+
+</div>
+
         </div>
+
       </Container>
 
     </section>
