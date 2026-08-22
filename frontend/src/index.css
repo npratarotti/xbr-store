@@ -1,16 +1,2 @@
 @import "tailwindcss";
-@import "./shared/styles/theme.css";
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  background: #09090B;
-  color: #FAFAFA;
-  font-family:
-    Inter,
-    system-ui,
-    sans-serif;
-}
+@import "./styles/theme.css";
