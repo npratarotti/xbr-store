@@ -9,6 +9,7 @@ export const products = [
     image: "/images/products/notebook.webp",
     badge: "Novo",
   },
+
   {
     id: 2,
     name: "iPhone 17 Pro Max",
@@ -19,6 +20,7 @@ export const products = [
     image: "/images/products/iphone.jfif",
     badge: "Mais vendido",
   },
+
   {
     id: 3,
     name: "Headset Gamer RGB",
@@ -29,6 +31,7 @@ export const products = [
     image: "/images/products/headset.png",
     badge: "Oferta",
   },
+
   {
     id: 4,
     name: "Smartwatch Ultra",
@@ -40,3 +43,5 @@ export const products = [
     badge: "Novo",
   },
 ];
+
+export const featuredProducts = products;

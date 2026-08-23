@@ -1,13 +1,12 @@
 import { ProductCard } from "../../ui/ProductCard";
 import { Container } from "../../layout/Container";
-import { featuredProducts } from "../../../constants/products";
-
+import { featuredProducts } from "../../constants/products";
 export function FeaturedProducts() {
   return (
     <section className="py-24">
       <Container>
         <div className="mb-12 text-center">
-          <h2 className="text-4xl font-black">
+          <h2 className="text-4xl font-black text-white">
             Produtos em Destaque
           </h2>
 
