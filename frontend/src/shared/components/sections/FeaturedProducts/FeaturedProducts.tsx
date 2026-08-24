@@ -23,7 +23,9 @@ export function FeaturedProducts() {
               name={product.name}
               category={product.category}
               price={product.price}
+              installment={product.installment}
               rating={product.rating}
+              badge={product.badge}
             />
           ))}
         </div>
