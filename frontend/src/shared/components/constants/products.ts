@@ -17,7 +17,7 @@ export const products = [
     price: 9999.90,
     installment: "12x de R$ 833,32",
     rating: 4.8,
-    image: "/images/products/iphone.jfif",
+    image: "/images/products/iphone.webp",
     badge: "Mais vendido",
   },
 
@@ -28,7 +28,7 @@ export const products = [
     price: 699.90,
     installment: "12x de R$ 58,32",
     rating: 4.7,
-    image: "/images/products/headset.png",
+    image: "/images/products/headset.webp",
     badge: "Oferta",
   },
 
