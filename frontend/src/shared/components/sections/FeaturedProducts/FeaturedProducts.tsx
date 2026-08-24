@@ -1,6 +1,6 @@
 import { ProductCard } from "../../ui/ProductCard";
 import { Container } from "../../layout/Container";
-import { featuredProducts } from "../../constants/products";
+import { featuredProducts } from "../../../constants/products";
 export function FeaturedProducts() {
   return (
     <section className="py-24">

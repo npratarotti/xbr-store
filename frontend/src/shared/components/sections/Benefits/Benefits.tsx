@@ -1,6 +1,6 @@
 import { Container } from "../../layout/Container";
 import { BenefitCard } from "../../ui/BenefitCard";
-import { benefits } from "../../constants/benefits";
+import { benefits } from "../../../constants/benefits";
 
 export function Benefits() {
   return (
