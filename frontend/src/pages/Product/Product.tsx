@@ -5,9 +5,7 @@ import { products } from "../../shared/constants/products";
 export function Product() {
   const { id } = useParams();
 
-  const product = products.find(
-    (item) => item.id === Number(id)
-  );
+  const product = products.find((item) => item.id === Number(id));
 
   if (!product) {
     return (
@@ -21,12 +19,36 @@ export function Product() {
     );
   }
 
+  const addToCart = () => {
+    const savedCart = localStorage.getItem("xbr-cart");
+    const cart = savedCart ? JSON.parse(savedCart) : [];
+
+    const existingProduct = cart.find(
+      (item: { id: number }) => item.id === product.id
+    );
+
+    if (existingProduct) {
+      existingProduct.quantity += 1;
+    } else {
+      cart.push({
+        id: product.id,
+        image: product.image,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+      });
+    }
+
+    localStorage.setItem("xbr-cart", JSON.stringify(cart));
+
+    alert(`${product.name} foi adicionado ao carrinho!`);
+  };
+
   return (
     <main className="min-h-screen bg-[#09090B] py-20">
       <Container>
         <div className="grid gap-12 lg:grid-cols-2">
 
-          {/* Imagem */}
           <div className="flex min-h-[500px] items-center justify-center rounded-3xl border border-white/10 bg-zinc-900/60 p-10">
             <img
               src={product.image}
@@ -35,8 +57,8 @@ export function Product() {
             />
           </div>
 
-          {/* Informações */}
           <div className="flex flex-col justify-center">
+
             <span className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">
               {product.category}
             </span>
@@ -75,27 +97,12 @@ export function Product() {
             </p>
 
             <button
-              className="
-                mt-10
-                w-full
-                rounded-2xl
-                bg-gradient-to-r
-                from-violet-600
-                to-fuchsia-600
-                py-4
-                font-bold
-                text-white
-                shadow-lg
-                shadow-violet-700/20
-                transition-all
-                hover:scale-[1.02]
-                hover:shadow-violet-500/40
-                active:scale-[0.98]
-                lg:max-w-md
-              "
+              onClick={addToCart}
+              className="mt-10 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-4 font-bold text-white shadow-lg shadow-violet-700/20 transition hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98] lg:max-w-md"
             >
               Adicionar ao carrinho
             </button>
+
           </div>
         </div>
       </Container>

@@ -1,111 +1,55 @@
+import { Link } from "react-router-dom";
 import { Container } from "../Container";
 
 export function Header() {
+  const savedCart = localStorage.getItem("xbr-cart");
+  const cart = savedCart ? JSON.parse(savedCart) : [];
+
+  const cartQuantity = cart.reduce(
+    (total: number, item: { quantity: number }) => total + item.quantity,
+    0
+  );
+
   return (
-    <header
-      className="
-        fixed
-        top-0
-        left-0
-        right-0
-        z-50
-        border-b
-        border-white/10
-        bg-black/50
-        backdrop-blur-2xl
-      "
-    >
+    <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
       <Container>
-        <div className="flex h-24 items-center justify-between">
-
-          {/* Logo */}
-
-          <div>
-
-            <h1 className="text-4xl font-black tracking-tight">
-
-              <span className="text-white">
-                X
-              </span>
-
-              <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
-                BR
-              </span>
-
+        <div className="flex h-20 items-center justify-between">
+          
+          <Link to="/" className="group">
+            <h1 className="text-3xl font-black text-violet-500 transition group-hover:text-fuchsia-400">
+              XBR
             </h1>
+            <p className="text-xs text-zinc-500">Store</p>
+          </Link>
 
-            <p className="text-xs uppercase tracking-[0.35em] text-zinc-500">
-              Premium Store
-            </p>
-
-          </div>
-
-          {/* Busca */}
-
-          <div className="hidden w-full max-w-xl px-10 lg:block">
-
+          <div className="hidden w-full max-w-xl px-10 md:block">
             <input
               type="text"
               placeholder="Buscar produtos..."
-              className="
-                w-full
-                rounded-2xl
-                border
-                border-white/10
-                bg-white/5
-                px-6
-                py-3.5
-                text-sm
-                text-white
-                placeholder:text-zinc-500
-                outline-none
-                transition-all
-                duration-300
-                focus:border-violet-500
-                focus:bg-white/10
-                focus:shadow-[0_0_35px_rgba(139,92,246,.35)]
-              "
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
             />
-
           </div>
 
-          {/* Menu */}
-
-          <nav className="flex items-center gap-5">
-
-            <button
-              className="
-                text-sm
-                font-medium
-                text-zinc-300
-                transition
-                hover:text-white
-              "
+          <nav className="flex items-center gap-6">
+            <Link
+              to="/login"
+              className="text-sm text-zinc-300 transition hover:text-white"
             >
               Login
-            </button>
+            </Link>
 
-            <button
-              className="
-                rounded-2xl
-                bg-gradient-to-r
-                from-violet-600
-                to-fuchsia-600
-                px-6
-                py-3
-                font-semibold
-                text-white
-                shadow-lg
-                shadow-violet-700/30
-                transition-all
-                duration-300
-                hover:scale-105
-                hover:shadow-violet-500/50
-              "
+            <Link
+              to="/cart"
+              className="relative rounded-xl bg-violet-600 px-5 py-2 font-medium text-white transition hover:bg-violet-700"
             >
-              🛒 Carrinho
-            </button>
+              Carrinho
 
+              {cartQuantity > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-fuchsia-500 px-1.5 text-xs font-bold text-white shadow-lg">
+                  {cartQuantity}
+                </span>
+              )}
+            </Link>
           </nav>
 
         </div>
