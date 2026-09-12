@@ -1,4 +1,7 @@
+import { Link } from "react-router-dom";
+
 type ProductCardProps = {
+  id: number;
   image: string;
   name: string;
   category: string;
@@ -9,6 +12,7 @@ type ProductCardProps = {
 };
 
 export function ProductCard({
+  id,
   image,
   name,
   category,
@@ -17,6 +21,31 @@ export function ProductCard({
   rating,
   badge,
 }: ProductCardProps) {
+  const addToCart = () => {
+    const savedCart = localStorage.getItem("xbr-cart");
+    const cart = savedCart ? JSON.parse(savedCart) : [];
+
+    const existingProduct = cart.find(
+      (item: { id: number }) => item.id === id
+    );
+
+    if (existingProduct) {
+      existingProduct.quantity += 1;
+    } else {
+      cart.push({
+        id,
+        image,
+        name,
+        price,
+        quantity: 1,
+      });
+    }
+
+    localStorage.setItem("xbr-cart", JSON.stringify(cart));
+
+    alert(`${name} foi adicionado ao carrinho!`);
+  };
+
   return (
     <article
       className="
@@ -36,127 +65,41 @@ export function ProductCard({
         hover:shadow-[0_25px_70px_rgba(124,58,237,.20)]
       "
     >
-      {/* Brilho do card */}
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -right-20
-          -top-20
-          h-40
-          w-40
-          rounded-full
-          bg-violet-600/10
-          blur-3xl
-          transition
-          duration-500
-          group-hover:bg-violet-600/20
-        "
-      />
+      {/* Brilho */}
+      <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition duration-500 group-hover:bg-violet-600/20" />
 
       {/* Badge */}
       {badge && (
-        <span
-          className="
-            absolute
-            left-5
-            top-5
-            z-10
-            rounded-full
-            border
-            border-violet-400/20
-            bg-violet-600/90
-            px-3
-            py-1
-            text-xs
-            font-semibold
-            text-white
-            shadow-lg
-            shadow-violet-900/20
-          "
-        >
+        <span className="absolute left-5 top-5 z-10 rounded-full border border-violet-400/20 bg-violet-600/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-violet-900/20">
           {badge}
         </span>
       )}
 
-      {/* Imagem */}
-      <div
-        className="
-          relative
-          mb-6
-          flex
-          h-64
-          items-center
-          justify-center
-          overflow-hidden
-          rounded-2xl
-          border
-          border-white/5
-          bg-gradient-to-br
-          from-zinc-950
-          to-zinc-900
-        "
-      >
-        <div
-          className="
-            pointer-events-none
-            absolute
-            h-32
-            w-32
-            rounded-full
-            bg-violet-600/10
-            blur-3xl
-            transition-all
-            duration-500
-            group-hover:bg-violet-600/20
-          "
-        />
+      {/* Imagem clicável */}
+      <Link to={`/product/${id}`} className="block">
+        <div className="relative mb-6 flex h-64 items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br from-zinc-950 to-zinc-900">
+          <div className="pointer-events-none absolute h-32 w-32 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/20" />
 
-        <img
-          src={image}
-          alt={name}
-          className="
-            relative
-            h-full
-            w-full
-            object-contain
-            p-6
-            transition-transform
-            duration-500
-            group-hover:scale-110
-          "
-        />
-      </div>
+          <img
+            src={image}
+            alt={name}
+            className="relative h-full w-full object-contain p-6 transition-transform duration-500 group-hover:scale-110"
+          />
+        </div>
+      </Link>
 
       {/* Categoria */}
-      <span
-        className="
-          text-xs
-          font-semibold
-          uppercase
-          tracking-wider
-          text-violet-400
-        "
-      >
+      <span className="text-xs font-semibold uppercase tracking-wider text-violet-400">
         {category}
       </span>
 
-      {/* Nome */}
-      <h3
-        className="
-          mt-2
-          min-h-[56px]
-          text-xl
-          font-bold
-          leading-7
-          text-white
-          transition-colors
-          duration-300
-          group-hover:text-violet-200
-        "
+      {/* Nome clicável */}
+      <Link
+        to={`/product/${id}`}
+        className="mt-2 block min-h-[56px] text-xl font-bold leading-7 text-white transition-colors duration-300 hover:text-violet-200"
       >
         {name}
-      </h3>
+      </Link>
 
       {/* Avaliação */}
       <div className="mt-3 flex items-center gap-2">
@@ -187,6 +130,7 @@ export function ProductCard({
 
       {/* Botão */}
       <button
+        onClick={addToCart}
         className="
           mt-6
           w-full

@@ -26,7 +26,7 @@ export function AppRoutes() {
         <Route path="/register" element={<Register />} />
 
         <Route path="*" element={<NotFound />} />
-
+        
       </Routes>
     </BrowserRouter>
   );
