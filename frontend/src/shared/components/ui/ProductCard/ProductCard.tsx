@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Toast } from "../Toast";
+import { useCart } from "../../../../app/providers/CartProvider";
 
 type ProductCardProps = {
   id: number;
@@ -23,29 +24,17 @@ export function ProductCard({
   rating,
   badge,
 }: ProductCardProps) {
+  const { addToCart } = useCart();
+
   const [showToast, setShowToast] = useState(false);
 
-  const addToCart = () => {
-    const savedCart = localStorage.getItem("xbr-cart");
-    const cart = savedCart ? JSON.parse(savedCart) : [];
-
-    const existingProduct = cart.find(
-      (item: { id: number }) => item.id === id
-    );
-
-    if (existingProduct) {
-      existingProduct.quantity += 1;
-    } else {
-      cart.push({
-        id,
-        image,
-        name,
-        price,
-        quantity: 1,
-      });
-    }
-
-    localStorage.setItem("xbr-cart", JSON.stringify(cart));
+  const handleAddToCart = () => {
+    addToCart({
+      id,
+      image,
+      name,
+      price,
+    });
 
     setShowToast(true);
 
@@ -135,7 +124,7 @@ export function ProductCard({
         </div>
 
         <button
-          onClick={addToCart}
+          onClick={handleAddToCart}
           className="
             mt-6
             w-full

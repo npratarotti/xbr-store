@@ -1,25 +1,23 @@
 import { Link } from "react-router-dom";
 import { Container } from "../Container";
+import { useCart } from "../../../../app/providers/CartProvider";
 
 export function Header() {
-  const savedCart = localStorage.getItem("xbr-cart");
-  const cart = savedCart ? JSON.parse(savedCart) : [];
-
-  const cartQuantity = cart.reduce(
-    (total: number, item: { quantity: number }) => total + item.quantity,
-    0
-  );
+  const { cartQuantity } = useCart();
 
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
       <Container>
         <div className="flex h-20 items-center justify-between">
-          
+
           <Link to="/" className="group">
             <h1 className="text-3xl font-black text-violet-500 transition group-hover:text-fuchsia-400">
               XBR
             </h1>
-            <p className="text-xs text-zinc-500">Store</p>
+
+            <p className="text-xs text-zinc-500">
+              Store
+            </p>
           </Link>
 
           <div className="hidden w-full max-w-xl px-10 md:block">
@@ -31,6 +29,7 @@ export function Header() {
           </div>
 
           <nav className="flex items-center gap-6">
+
             <Link
               to="/login"
               className="text-sm text-zinc-300 transition hover:text-white"
@@ -50,8 +49,8 @@ export function Header() {
                 </span>
               )}
             </Link>
-          </nav>
 
+          </nav>
         </div>
       </Container>
     </header>
