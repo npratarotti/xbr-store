@@ -9,6 +9,7 @@ import { Register } from "../../pages/Register/Register";
 import { NotFound } from "../../pages/NotFound/NotFound";
 import { CartProvider } from "../providers/CartProvider";
 import { AuthProvider } from "../providers/AuthProvider";
+import { Checkout } from "../../pages/Checkout/Checkout";
 
 export function AppRoutes() {
   return (
@@ -23,6 +24,7 @@ export function AppRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/checkout" element={<Checkout />} />
           </Routes>
         </BrowserRouter>
       </CartProvider>

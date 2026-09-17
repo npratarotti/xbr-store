@@ -1,56 +1,16 @@
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
 import { Container } from "../../shared/components/layout/Container";
 
-type CartItem = {
-  id: number;
-  image: string;
-  name: string;
-  price: number;
-  quantity: number;
-};
+import { useCart } from "../../app/providers/CartProvider";
 
 export function Cart() {
-  const [cart, setCart] = useState<CartItem[]>([]);
-
-  useEffect(() => {
-    const savedCart = localStorage.getItem("xbr-cart");
-
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
-  }, []);
-
-  const updateCart = (updatedCart: CartItem[]) => {
-    setCart(updatedCart);
-    localStorage.setItem("xbr-cart", JSON.stringify(updatedCart));
-  };
-
-  const increaseQuantity = (id: number) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id
-        ? { ...item, quantity: item.quantity + 1 }
-        : item
-    );
-
-    updateCart(updatedCart);
-  };
-
-  const decreaseQuantity = (id: number) => {
-    const updatedCart = cart
-      .map((item) =>
-        item.id === id
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-      .filter((item) => item.quantity > 0);
-
-    updateCart(updatedCart);
-  };
-
-  const removeItem = (id: number) => {
-    const updatedCart = cart.filter((item) => item.id !== id);
-    updateCart(updatedCart);
-  };
+  const {
+    cart,
+    increaseQuantity,
+    decreaseQuantity,
+    removeItem,
+  } = useCart();
 
   const total = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -86,16 +46,15 @@ export function Cart() {
               Adicione produtos para começar sua compra.
             </p>
 
-            <a
-              href="/products"
+            <Link
+              to="/products"
               className="mt-8 inline-block rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-8 py-4 font-bold text-white transition hover:scale-105"
             >
               Explorar produtos
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
-            {/* Produtos */}
             <div className="space-y-4">
               {cart.map((item) => (
                 <div
@@ -153,7 +112,6 @@ export function Cart() {
               ))}
             </div>
 
-            {/* Resumo */}
             <aside className="h-fit rounded-3xl border border-white/10 bg-zinc-900/70 p-7">
               <h2 className="text-xl font-bold text-white">
                 Resumo do pedido
@@ -174,7 +132,10 @@ export function Cart() {
 
               <div className="mt-4 flex justify-between text-zinc-400">
                 <span>Frete</span>
-                <span className="text-green-400">Grátis</span>
+
+                <span className="text-green-400">
+                  Grátis
+                </span>
               </div>
 
               <div className="my-6 h-px bg-white/10" />
@@ -192,9 +153,12 @@ export function Cart() {
                 </span>
               </div>
 
-              <button className="mt-7 w-full rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-4 font-bold text-white shadow-lg shadow-violet-700/20 transition hover:scale-[1.02]">
+              <Link
+                to="/checkout"
+                className="mt-7 block w-full rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-4 text-center font-bold text-white shadow-lg shadow-violet-700/20 transition hover:scale-[1.02]"
+              >
                 Finalizar compra
-              </button>
+              </Link>
             </aside>
           </div>
         )}
