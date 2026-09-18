@@ -39,8 +39,30 @@ export function Checkout() {
       return;
     }
 
-    navigate("/order-success");
-  };
+    const order = {
+        id: `XBR-${Date.now()}`,
+        customer: {
+          name,
+          email,
+        },
+        address: {
+          cep,
+          address,
+          number,
+          city,
+          state,
+        },
+        payment,
+        items: cart,
+        total,
+        createdAt: new Date().toISOString(),
+      };
+      
+      localStorage.setItem("xbr-last-order", JSON.stringify(order));
+      
+      localStorage.removeItem("xbr-cart");
+      
+      navigate("/order-success");  };
 
   if (cart.length === 0) {
     return (

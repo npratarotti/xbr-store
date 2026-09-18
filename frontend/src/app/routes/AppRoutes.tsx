@@ -10,6 +10,7 @@ import { NotFound } from "../../pages/NotFound/NotFound";
 import { CartProvider } from "../providers/CartProvider";
 import { AuthProvider } from "../providers/AuthProvider";
 import { Checkout } from "../../pages/Checkout/Checkout";
+import { OrderSuccess } from "../../pages/OrderSuccess/OrderSuccess";
 
 export function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ export function AppRoutes() {
             <Route path="/register" element={<Register />} />
             <Route path="*" element={<NotFound />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
           </Routes>
         </BrowserRouter>
       </CartProvider>
