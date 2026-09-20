@@ -1,18 +1,26 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+
 import { Container } from "../../shared/components/layout/Container";
 import { ProductCard } from "../../shared/components/ui/ProductCard";
 import { products } from "../../shared/constants/products";
 
 export function Products() {
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+
+  const initialSearch = searchParams.get("search") || "";
+
+  const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState("Todos");
   const [sort, setSort] = useState("default");
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((product) => {
-      const matchesSearch = product.name
-        .toLowerCase()
-        .includes(search.toLowerCase());
+      const normalizedSearch = search.toLowerCase().trim();
+
+      const matchesSearch =
+        product.name.toLowerCase().includes(normalizedSearch) ||
+        product.category.toLowerCase().includes(normalizedSearch);
 
       const matchesCategory =
         category === "Todos" || product.category === category;
@@ -38,7 +46,6 @@ export function Products() {
   return (
     <main className="min-h-screen bg-[#09090B] py-20">
       <Container>
-        {/* Cabeçalho */}
         <div className="mb-12">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">
             XBR Store
@@ -53,7 +60,6 @@ export function Products() {
           </p>
         </div>
 
-        {/* Filtros */}
         <div className="mb-10 flex flex-col gap-4 rounded-3xl border border-white/10 bg-zinc-900/60 p-5 md:flex-row">
           <input
             type="text"
@@ -87,29 +93,29 @@ export function Products() {
           </select>
         </div>
 
-        {/* Resultado */}
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-zinc-500">
             {filteredProducts.length}{" "}
-            {filteredProducts.length === 1 ? "produto encontrado" : "produtos encontrados"}
+            {filteredProducts.length === 1
+              ? "produto encontrado"
+              : "produtos encontrados"}
           </p>
         </div>
 
-        {/* Produtos */}
         {filteredProducts.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product) => (
-             <ProductCard
-             key={product.id}
-             id={product.id}
-             image={product.image}
-             name={product.name}
-             category={product.category}
-             price={product.price}
-             installment={product.installment}
-             rating={product.rating}
-             badge={product.badge}
-           />
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                image={product.image}
+                name={product.name}
+                category={product.category}
+                price={product.price}
+                installment={product.installment}
+                rating={product.rating}
+                badge={product.badge}
+              />
             ))}
           </div>
         ) : (
