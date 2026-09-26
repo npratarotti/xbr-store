@@ -1,0 +1,478 @@
+import { useEffect, useState } from "react";
+import { Toast } from "../../../shared/components/ui/Toast";
+import { ConfirmDialog } from "../../../shared/components/ui/ConfirmDialog";
+
+type Product = {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  image: string;
+  stock?: number; // undefined = ilimitado
+};
+
+type FormErrors = {
+  name?: string;
+  category?: string;
+  price?: string;
+  image?: string;
+  stock?: string;
+};
+
+type ToastState = {
+  message: string;
+  type: "success" | "error";
+};
+
+export function ProductManager() {
+  const [products, setProducts] = useState<Product[]>(() => {
+    return JSON.parse(
+      localStorage.getItem("xbr-products") || "[]"
+    );
+  });
+
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
+  const [price, setPrice] = useState("");
+  const [image, setImage] = useState("");
+  const [stock, setStock] = useState("");
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const [productToDelete, setProductToDelete] =
+    useState<Product | null>(null);
+
+  // Auto-dismiss do toast
+  useEffect(() => {
+    if (!toast) return;
+
+    const timer = setTimeout(() => setToast(null), 2500);
+
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const validate = (): FormErrors => {
+    const nextErrors: FormErrors = {};
+
+    if (!name.trim()) {
+      nextErrors.name = "Informe o nome do produto.";
+    } else if (name.trim().length < 2) {
+      nextErrors.name = "O nome precisa ter pelo menos 2 caracteres.";
+    }
+
+    if (!category.trim()) {
+      nextErrors.category = "Informe a categoria.";
+    } else if (category.trim().length < 2) {
+      nextErrors.category = "A categoria precisa ter pelo menos 2 caracteres.";
+    }
+
+    const parsedPrice = Number(price);
+
+    if (!price.trim()) {
+      nextErrors.price = "Informe o preço.";
+    } else if (Number.isNaN(parsedPrice)) {
+      nextErrors.price = "O preço precisa ser um número.";
+    } else if (parsedPrice <= 0) {
+      nextErrors.price = "O preço precisa ser maior que zero.";
+    }
+
+    if (image.trim()) {
+      const looksLikeUrl =
+        image.trim().startsWith("http://") ||
+        image.trim().startsWith("https://") ||
+        image.trim().startsWith("/");
+
+      if (!looksLikeUrl) {
+        nextErrors.image =
+          "A URL da imagem deve começar com http://, https:// ou /.";
+      }
+    }
+
+    if (stock.trim()) {
+      const parsedStock = Number(stock);
+
+      if (Number.isNaN(parsedStock) || !Number.isInteger(parsedStock)) {
+        nextErrors.stock = "O estoque precisa ser um número inteiro.";
+      } else if (parsedStock < 0) {
+        nextErrors.stock = "O estoque não pode ser negativo.";
+      }
+    }
+
+    return nextErrors;
+  };
+
+  const persistProducts = (updated: Product[]) => {
+    setProducts(updated);
+    localStorage.setItem("xbr-products", JSON.stringify(updated));
+    window.dispatchEvent(new Event("xbr-products-updated"));
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const validationErrors = validate();
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    const stockValue = stock.trim() ? Number(stock) : undefined;
+
+    if (editingId !== null) {
+      const updatedProducts = products.map((product) =>
+        product.id === editingId
+          ? {
+              ...product,
+              name: name.trim(),
+              category: category.trim(),
+              price: Number(price),
+              image: image.trim(),
+              stock: stockValue,
+            }
+          : product
+      );
+
+      persistProducts(updatedProducts);
+
+      setEditingId(null);
+      setToast({
+        message: "Produto atualizado com sucesso!",
+        type: "success",
+      });
+    } else {
+      const newProduct: Product = {
+        id: Date.now(),
+        name: name.trim(),
+        category: category.trim(),
+        price: Number(price),
+        image: image.trim(),
+        stock: stockValue,
+      };
+
+      persistProducts([...products, newProduct]);
+
+      setToast({
+        message: "Produto adicionado com sucesso!",
+        type: "success",
+      });
+    }
+
+    setName("");
+    setCategory("");
+    setPrice("");
+    setImage("");
+    setStock("");
+    setErrors({});
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingId(product.id);
+    setName(product.name);
+    setCategory(product.category);
+    setPrice(product.price.toString());
+    setImage(product.image);
+    setStock(
+      typeof product.stock === "number" ? product.stock.toString() : ""
+    );
+    setErrors({});
+
+    requestAnimationFrame(() => {
+      document
+        .getElementById("form-produto")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setName("");
+    setCategory("");
+    setPrice("");
+    setImage("");
+    setStock("");
+    setErrors({});
+  };
+
+  const handleDelete = (product: Product) => {
+    setProductToDelete(product);
+  };
+
+  const confirmDelete = () => {
+    if (!productToDelete) return;
+
+    const updatedProducts = products.filter(
+      (product) => product.id !== productToDelete.id
+    );
+
+    persistProducts(updatedProducts);
+
+    if (editingId === productToDelete.id) {
+      handleCancelEdit();
+    }
+
+    setToast({
+      message: `"${productToDelete.name}" foi excluído.`,
+      type: "error",
+    });
+
+    setProductToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setProductToDelete(null);
+  };
+
+  const inputClass = (hasError: boolean) =>
+    `w-full rounded-2xl border bg-zinc-950 px-5 py-3.5 text-white outline-none placeholder:text-zinc-600 transition ${
+      hasError
+        ? "border-red-500/60 focus:border-red-500"
+        : "border-white/10 focus:border-violet-500"
+    }`;
+
+  return (
+    <>
+      <section id="gestao-produtos" className="mt-10">
+        <div className="mb-6">
+          <h2 className="text-2xl font-black text-white">
+            Gestão de produtos
+          </h2>
+
+          <p className="mt-1 text-sm text-zinc-500">
+            Cadastre, edite e gerencie os produtos da sua loja.
+          </p>
+        </div>
+
+        <form
+          id="form-produto"
+          onSubmit={handleSubmit}
+          noValidate
+          className="rounded-3xl border border-white/10 bg-zinc-900/70 p-6 scroll-mt-6"
+        >
+          <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <input
+                type="text"
+                placeholder="Nome do produto"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className={inputClass(!!errors.name)}
+              />
+
+              {errors.name && (
+                <p className="mt-2 text-xs font-medium text-red-400">
+                  {errors.name}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="Categoria"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                className={inputClass(!!errors.category)}
+              />
+
+              {errors.category && (
+                <p className="mt-2 text-xs font-medium text-red-400">
+                  {errors.category}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Preço"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                className={inputClass(!!errors.price)}
+              />
+
+              {errors.price && (
+                <p className="mt-2 text-xs font-medium text-red-400">
+                  {errors.price}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <input
+                type="text"
+                placeholder="URL da imagem (opcional)"
+                value={image}
+                onChange={(event) => setImage(event.target.value)}
+                className={inputClass(!!errors.image)}
+              />
+
+              {errors.image && (
+                <p className="mt-2 text-xs font-medium text-red-400">
+                  {errors.image}
+                </p>
+              )}
+            </div>
+
+            <div className="md:col-span-2">
+              <input
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Estoque (opcional)"
+                value={stock}
+                onChange={(event) => setStock(event.target.value)}
+                className={inputClass(!!errors.stock)}
+              />
+
+              {errors.stock ? (
+                <p className="mt-2 text-xs font-medium text-red-400">
+                  {errors.stock}
+                </p>
+              ) : (
+                <p className="mt-2 text-xs text-zinc-600">
+                  Deixe vazio para estoque ilimitado.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="submit"
+              className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white transition hover:scale-[1.02]"
+            >
+              {editingId !== null
+                ? "Salvar alterações"
+                : "Adicionar produto"}
+            </button>
+
+            {editingId !== null && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="rounded-2xl border border-white/10 bg-zinc-950 px-7 py-3.5 font-semibold text-zinc-300 transition hover:border-white/20 hover:text-white"
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+        </form>
+
+        <div className="mt-8">
+          <p className="mb-4 text-sm text-zinc-500">
+            {products.length} produto(s) cadastrado(s)
+          </p>
+
+          {products.length === 0 ? (
+            <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-16 text-center">
+              <div className="text-5xl">📦</div>
+
+              <p className="mt-4 font-semibold text-white">
+                Nenhum produto cadastrado
+              </p>
+
+              <p className="mt-2 text-sm text-zinc-500">
+                Os produtos adicionados aparecerão aqui.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {products.map((product) => (
+                <article
+                  key={product.id}
+                  className="flex flex-col gap-5 rounded-3xl border border-white/10 bg-zinc-900/70 p-5 md:flex-row md:items-center"
+                >
+                  <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-zinc-950">
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="h-full w-full object-contain p-2"
+                      />
+                    ) : (
+                      <span className="text-3xl">📦</span>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
+                      {product.category}
+                    </p>
+
+                    <h3 className="mt-1 truncate text-lg font-bold text-white">
+                      {product.name}
+                    </h3>
+
+                    <p className="mt-2 text-lg font-black text-white">
+                      {product.price.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </p>
+
+                    {typeof product.stock === "number" && (
+                      <p
+                        className={`mt-1 text-xs font-semibold ${
+                          product.stock === 0
+                            ? "text-red-400"
+                            : product.stock <= 5
+                              ? "text-amber-400"
+                              : "text-zinc-500"
+                        }`}
+                      >
+                        {product.stock === 0
+                          ? "Esgotado"
+                          : `${product.stock} em estoque`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(product)}
+                      className="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-5 py-3 text-sm font-semibold text-violet-400 transition hover:bg-violet-500/20"
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(product)}
+                      className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500/20"
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <ConfirmDialog
+        open={productToDelete !== null}
+        title="Excluir produto?"
+        description={
+          productToDelete
+            ? `Tem certeza que deseja excluir "${productToDelete.name}"? Essa ação não pode ser desfeita.`
+            : undefined
+        }
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
+
+      {toast && (
+        <Toast message={toast.message} type={toast.type} />
+      )}
+    </>
+  );
+}

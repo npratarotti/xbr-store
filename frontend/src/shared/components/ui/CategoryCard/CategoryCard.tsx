@@ -1,11 +1,11 @@
 type CategoryCardProps = {
-  icon: string;
   name: string;
+  image: string;
 };
 
 export function CategoryCard({
-  icon,
   name,
+  image,
 }: CategoryCardProps) {
   return (
     <button
@@ -50,7 +50,7 @@ export function CategoryCard({
         "
       />
 
-      {/* Ícone */}
+      {/* Imagem */}
       <div
         className="
           relative
@@ -59,11 +59,11 @@ export function CategoryCard({
           w-20
           items-center
           justify-center
+          overflow-hidden
           rounded-2xl
           border
           border-white/10
           bg-white/[0.04]
-          text-4xl
           shadow-inner
           transition-all
           duration-500
@@ -72,15 +72,22 @@ export function CategoryCard({
           group-hover:bg-violet-500/10
         "
       >
-        <span
+        <img
+          src={image}
+          alt={name}
+          loading="lazy"
+          draggable={false}
           className="
+            h-full
+            w-full
+            object-contain
+            p-3
             transition-transform
             duration-500
             group-hover:scale-110
+            select-none
           "
-        >
-          {icon}
-        </span>
+        />
       </div>
 
       {/* Nome */}

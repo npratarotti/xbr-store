@@ -14,6 +14,7 @@ export function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [demoMode, setDemoMode] = useState(false);
   const [error, setError] = useState("");
 
   const registered = (location.state as LocationState | null)?.registered;
@@ -29,7 +30,8 @@ export function Login() {
 
     const success = login(
       email.trim().toLowerCase(),
-      password
+      password,
+      demoMode
     );
 
     if (!success) {
@@ -90,21 +92,12 @@ export function Login() {
               </div>
 
               <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label
-                    htmlFor="password"
-                    className="text-sm font-medium text-zinc-300"
-                  >
-                    Senha
-                  </label>
-
-                  <button
-                    type="button"
-                    className="text-xs font-medium text-violet-400 transition hover:text-violet-300"
-                  >
-                    Esqueci minha senha
-                  </button>
-                </div>
+              <label
+  htmlFor="password"
+  className="mb-2 block text-sm font-medium text-zinc-300"
+>
+  Senha
+</label>
 
                 <input
                   id="password"
@@ -115,6 +108,27 @@ export function Login() {
                   className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
                 />
               </div>
+
+              {/* Modo demo */}
+              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4 transition hover:border-violet-500/40">
+                <input
+                  type="checkbox"
+                  checked={demoMode}
+                  onChange={(event) => setDemoMode(event.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-violet-600"
+                />
+
+                <div>
+                  <p className="text-sm font-semibold text-violet-300">
+                    🧪 Entrar em modo demonstração
+                  </p>
+
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Dá acesso ao painel de administrador para testes. Os dados
+                    ficam salvos apenas no seu navegador.
+                  </p>
+                </div>
+              </label>
 
               {error && (
                 <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">

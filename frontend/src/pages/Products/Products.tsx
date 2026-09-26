@@ -1,18 +1,54 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { Container } from "../../shared/components/layout/Container";
 import { ProductCard } from "../../shared/components/ui/ProductCard";
-import { products } from "../../shared/constants/products";
+import { useProducts } from "../../shared/hooks/useProducts";
+import { categories } from "../../shared/constants/categories";
 
 export function Products() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const products = useProducts();
 
-  const initialSearch = searchParams.get("search") || "";
+  const urlSearch = searchParams.get("search") || "";
 
-  const [search, setSearch] = useState(initialSearch);
+  const [search, setSearch] = useState(urlSearch);
   const [category, setCategory] = useState("Todos");
   const [sort, setSort] = useState("default");
+
+  // 1. URL mudou (back/forward) → sincroniza o input
+  useEffect(() => {
+    setSearch(urlSearch);
+  }, [urlSearch]);
+
+  // 2. Usuário digitou → debounce → atualiza a URL
+  useEffect(() => {
+    if (search === urlSearch) return;
+
+    const timer = setTimeout(() => {
+      const next = new URLSearchParams(searchParams);
+
+      if (search.trim()) {
+        next.set("search", search.trim());
+      } else {
+        next.delete("search");
+      }
+
+      setSearchParams(next, { replace: true });
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search, urlSearch, searchParams, setSearchParams]);
+
+  // 3. Categorias do mock ∪ produtos reais
+  const dynamicCategories = useMemo(() => {
+    const names = new Set<string>([
+      ...categories.map((c) => c.name),
+      ...products.map((p) => p.category),
+    ]);
+
+    return Array.from(names).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     let result = products.filter((product) => {
@@ -41,7 +77,7 @@ export function Products() {
     }
 
     return result;
-  }, [search, category, sort]);
+  }, [products, search, category, sort]);
 
   return (
     <main className="min-h-screen bg-[#09090B] py-20">
@@ -75,10 +111,12 @@ export function Products() {
             className="rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-zinc-300 outline-none focus:border-violet-500"
           >
             <option value="Todos">Todas as categorias</option>
-            <option value="Notebook">Notebook</option>
-            <option value="Smartphone">Smartphone</option>
-            <option value="Áudio">Áudio</option>
-            <option value="Wearables">Wearables</option>
+
+            {dynamicCategories.map((categoryName) => (
+              <option key={categoryName} value={categoryName}>
+                {categoryName}
+              </option>
+            ))}
           </select>
 
           <select
@@ -115,6 +153,7 @@ export function Products() {
                 installment={product.installment}
                 rating={product.rating}
                 badge={product.badge}
+                stock={product.stock}
               />
             ))}
           </div>
@@ -127,6 +166,19 @@ export function Products() {
             <p className="mt-2 text-zinc-500">
               Tente buscar outro produto ou categoria.
             </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setCategory("Todos");
+                setSort("default");
+                setSearchParams({}, { replace: true });
+              }}
+              className="mt-6 rounded-2xl bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
+            >
+              Limpar filtros
+            </button>
           </div>
         )}
       </Container>

@@ -39,15 +39,13 @@ export function Categories() {
 
         {/* Categorias */}
         <div className="relative grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6 lg:gap-5">
-
-          {categories.map((category) => (
-            <CategoryCard
-              key={category.id}
-              icon={category.icon}
-              name={category.name}
-            />
-          ))}
-
+        {categories.map((category) => (
+  <CategoryCard
+    key={category.id}
+    name={category.name}
+    image={category.image}
+  />
+))}
         </div>
       </Container>
     </section>

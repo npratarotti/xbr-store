@@ -1,12 +1,15 @@
 import { ProductCard } from "../../ui/ProductCard";
 import { Container } from "../../layout/Container";
-import { featuredProducts } from "../../../constants/products";
+import { useProducts } from "../../../hooks/useProducts";
+
 export function FeaturedProducts() {
+  const products = useProducts();
+
   return (
     <section className="py-24">
       <Container>
         <div className="mb-12 text-center">
-          <h2 className="text-4xl font-black text-white">
+          <h2 className="text-4xl font-black text-black">
             Produtos em Destaque
           </h2>
 
@@ -16,7 +19,7 @@ export function FeaturedProducts() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-          {featuredProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard
               key={product.id}
               id={product.id}
@@ -27,6 +30,7 @@ export function FeaturedProducts() {
               installment={product.installment}
               rating={product.rating}
               badge={product.badge}
+              stock={product.stock}
             />
           ))}
         </div>

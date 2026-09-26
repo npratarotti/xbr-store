@@ -12,6 +12,7 @@ type ProductCardProps = {
   installment?: string;
   rating: number;
   badge?: string;
+  stock?: number;
 };
 
 export function ProductCard({
@@ -23,18 +24,19 @@ export function ProductCard({
   installment,
   rating,
   badge,
+  stock,
 }: ProductCardProps) {
   const { addToCart } = useCart();
 
   const [showToast, setShowToast] = useState(false);
 
+  const isOutOfStock = stock === 0;
+  const isLowStock = typeof stock === "number" && stock > 0 && stock <= 5;
+
   const handleAddToCart = () => {
-    addToCart({
-      id,
-      image,
-      name,
-      price,
-    });
+    if (isOutOfStock) return;
+
+    addToCart({ id, image, name, price });
 
     setShowToast(true);
 
@@ -69,11 +71,24 @@ export function ProductCard({
       >
         <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition duration-500 group-hover:bg-violet-600/20" />
 
-        {badge && (
-          <span className="absolute left-5 top-5 z-10 rounded-full border border-violet-400/20 bg-violet-600/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-violet-900/20">
-            {badge}
-          </span>
-        )}
+        {/* Badges do topo */}
+        <div className="absolute left-5 top-5 z-10 flex flex-col items-start gap-2">
+          {isOutOfStock ? (
+            <span className="rounded-full border border-red-500/30 bg-red-600/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-red-900/30">
+              Esgotado
+            </span>
+          ) : isLowStock ? (
+            <span className="rounded-full border border-amber-400/30 bg-amber-500/90 px-3 py-1 text-xs font-semibold text-black shadow-lg shadow-amber-900/30">
+              Últimas unidades
+            </span>
+          ) : (
+            badge && (
+              <span className="rounded-full border border-violet-400/20 bg-violet-600/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-violet-900/20">
+                {badge}
+              </span>
+            )
+          )}
+        </div>
 
         <Link to={`/product/${id}`} className="block">
           <div className="relative mb-6 flex h-64 items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br from-zinc-950 to-zinc-900">
@@ -82,8 +97,18 @@ export function ProductCard({
             <img
               src={image}
               alt={name}
-              className="relative h-full w-full object-contain p-6 transition-transform duration-500 group-hover:scale-110"
+              className={`relative h-full w-full object-contain p-6 transition-transform duration-500 group-hover:scale-110 ${
+                isOutOfStock ? "opacity-40 grayscale" : ""
+              }`}
             />
+
+            {isOutOfStock && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <span className="rounded-full border border-red-500/40 bg-red-600/20 px-4 py-2 text-sm font-black uppercase tracking-wider text-red-300">
+                  Esgotado
+                </span>
+              </div>
+            )}
           </div>
         </Link>
 
@@ -117,34 +142,31 @@ export function ProductCard({
           </p>
 
           {installment && (
-            <p className="mt-1 text-sm text-zinc-500">
-              {installment}
-            </p>
+            <p className="mt-1 text-sm text-zinc-500">{installment}</p>
           )}
         </div>
 
         <button
           onClick={handleAddToCart}
-          className="
+          disabled={isOutOfStock}
+          className={`
             mt-6
             w-full
             rounded-2xl
-            bg-gradient-to-r
-            from-violet-600
-            to-fuchsia-600
             py-3.5
             font-semibold
             text-white
             shadow-lg
-            shadow-violet-700/20
             transition-all
             duration-300
-            hover:scale-[1.02]
-            hover:shadow-violet-500/40
-            active:scale-[0.98]
-          "
+            ${
+              isOutOfStock
+                ? "cursor-not-allowed bg-zinc-800 text-zinc-500 shadow-none"
+                : "bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-violet-700/20 hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98]"
+            }
+          `}
         >
-          Adicionar ao carrinho
+          {isOutOfStock ? "Produto esgotado" : "Adicionar ao carrinho"}
         </button>
       </article>
     </>

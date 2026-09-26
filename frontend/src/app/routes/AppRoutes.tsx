@@ -7,10 +7,18 @@ import { Cart } from "../../pages/Cart/Cart";
 import { Login } from "../../pages/Login/Login";
 import { Register } from "../../pages/Register/Register";
 import { NotFound } from "../../pages/NotFound/NotFound";
-import { CartProvider } from "../providers/CartProvider";
-import { AuthProvider } from "../providers/AuthProvider";
 import { Checkout } from "../../pages/Checkout/Checkout";
 import { OrderSuccess } from "../../pages/OrderSuccess/OrderSuccess";
+import { Profile } from "../../pages/Profile/Profile";
+
+import { CartProvider } from "../providers/CartProvider";
+import { AuthProvider } from "../providers/AuthProvider";
+import { ProtectedRoute } from "./ProtectedRoute";
+import { Admin } from "../../pages/Admin/Admin";
+import { AdminRoute } from "./AdminRoute";
+import { DemoBanner } from "../../shared/components/layout/DemoBanner";
+
+
 
 export function AppRoutes() {
   return (
@@ -19,16 +27,35 @@ export function AppRoutes() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+
             <Route path="/products" element={<Products />} />
+
             <Route path="/product/:id" element={<Product />} />
+
             <Route path="/cart" element={<Cart />} />
+
             <Route path="/login" element={<Login />} />
+
             <Route path="/register" element={<Register />} />
-            <Route path="*" element={<NotFound />} />
-            <Route path="/checkout" element={<Checkout />} />
+
             <Route path="/order-success" element={<OrderSuccess />} />
+
+            <Route element={<ProtectedRoute />}>
+
+              <Route path="/checkout" element={<Checkout />} />
+
+              <Route path="/profile" element={<Profile />} />
+
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<Admin />} />
+              </Route>
+
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        <DemoBanner />
       </CartProvider>
     </AuthProvider>
   );
