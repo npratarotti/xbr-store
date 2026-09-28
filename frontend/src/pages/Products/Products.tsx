@@ -11,17 +11,23 @@ export function Products() {
   const products = useProducts();
 
   const urlSearch = searchParams.get("search") || "";
+  const urlCategory = searchParams.get("category") || "";
 
   const [search, setSearch] = useState(urlSearch);
-  const [category, setCategory] = useState("Todos");
+  const [category, setCategory] = useState(urlCategory || "Todos");
   const [sort, setSort] = useState("default");
 
-  // 1. URL mudou (back/forward) → sincroniza o input
+  // 1. URL mudou (back/forward) → sincroniza o input de busca
   useEffect(() => {
     setSearch(urlSearch);
   }, [urlSearch]);
 
-  // 2. Usuário digitou → debounce → atualiza a URL
+  // 2. URL mudou → sincroniza a categoria
+  useEffect(() => {
+    setCategory(urlCategory || "Todos");
+  }, [urlCategory]);
+
+  // 3. Usuário digitou → debounce → atualiza a URL
   useEffect(() => {
     if (search === urlSearch) return;
 
@@ -40,7 +46,22 @@ export function Products() {
     return () => clearTimeout(timer);
   }, [search, urlSearch, searchParams, setSearchParams]);
 
-  // 3. Categorias do mock ∪ produtos reais
+  // 4. Troca de categoria pelo <select> → atualiza a URL
+  const handleCategoryChange = (value: string) => {
+    setCategory(value);
+
+    const next = new URLSearchParams(searchParams);
+
+    if (value === "Todos") {
+      next.delete("category");
+    } else {
+      next.set("category", value);
+    }
+
+    setSearchParams(next, { replace: true });
+  };
+
+  // 5. Categorias do mock ∪ produtos reais
   const dynamicCategories = useMemo(() => {
     const names = new Set<string>([
       ...categories.map((c) => c.name),
@@ -79,6 +100,13 @@ export function Products() {
     return result;
   }, [products, search, category, sort]);
 
+  const handleClearFilters = () => {
+    setSearch("");
+    setCategory("Todos");
+    setSort("default");
+    setSearchParams({}, { replace: true });
+  };
+
   return (
     <main className="min-h-screen bg-[#09090B] py-20">
       <Container>
@@ -107,7 +135,7 @@ export function Products() {
 
           <select
             value={category}
-            onChange={(event) => setCategory(event.target.value)}
+            onChange={(event) => handleCategoryChange(event.target.value)}
             className="rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-zinc-300 outline-none focus:border-violet-500"
           >
             <option value="Todos">Todas as categorias</option>
@@ -130,6 +158,24 @@ export function Products() {
             <option value="rating">Mais bem avaliados</option>
           </select>
         </div>
+
+        {/* Chip do filtro ativo */}
+        {category !== "Todos" && (
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm font-semibold text-violet-300">
+              <span>Categoria: {category}</span>
+
+              <button
+                type="button"
+                onClick={() => handleCategoryChange("Todos")}
+                aria-label="Remover filtro de categoria"
+                className="rounded-full text-violet-300 transition hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-zinc-500">
@@ -169,12 +215,7 @@ export function Products() {
 
             <button
               type="button"
-              onClick={() => {
-                setSearch("");
-                setCategory("Todos");
-                setSort("default");
-                setSearchParams({}, { replace: true });
-              }}
+              onClick={handleClearFilters}
               className="mt-6 rounded-2xl bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
             >
               Limpar filtros

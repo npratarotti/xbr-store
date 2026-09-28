@@ -235,23 +235,42 @@ export function ProductManager() {
   return (
     <>
       <section id="gestao-produtos" className="mt-10">
+        {/* Título */}
         <div className="mb-6">
-          <h2 className="text-2xl font-black text-white">
-            Gestão de produtos
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-400">
+            Catálogo
+          </span>
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+            Gestão de{" "}
+            <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+              produtos
+            </span>
           </h2>
-
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-zinc-500">
             Cadastre, edite e gerencie os produtos da sua loja.
           </p>
         </div>
 
+        {/* Formulário */}
         <form
           id="form-produto"
           onSubmit={handleSubmit}
           noValidate
-          className="rounded-3xl border border-white/10 bg-zinc-900/70 p-6 scroll-mt-6"
+          className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 scroll-mt-6"
         >
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
+
+          {/* Cabeçalho do form */}
+          <div className="relative mb-5 flex items-center gap-2">
+            <span className="text-lg">
+              {editingId !== null ? "✏️" : "➕"}
+            </span>
+            <p className="text-sm font-semibold text-zinc-300">
+              {editingId !== null ? "Editando produto" : "Novo produto"}
+            </p>
+          </div>
+
+          <div className="relative grid gap-5 md:grid-cols-2">
             <div>
               <input
                 type="text"
@@ -341,10 +360,10 @@ export function ProductManager() {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="relative mt-6 flex flex-wrap gap-3">
             <button
               type="submit"
-              className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white transition hover:scale-[1.02]"
+              className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white shadow-lg shadow-violet-700/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98]"
             >
               {editingId !== null
                 ? "Salvar alterações"
@@ -363,10 +382,16 @@ export function ProductManager() {
           </div>
         </form>
 
+        {/* Lista de produtos */}
         <div className="mt-8">
-          <p className="mb-4 text-sm text-zinc-500">
-            {products.length} produto(s) cadastrado(s)
-          </p>
+          <div className="mb-4 flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
+            <p className="text-sm text-zinc-400">
+              <span className="font-bold text-white">{products.length}</span>{" "}
+              produto{products.length !== 1 ? "s" : ""} cadastrado
+              {products.length !== 1 ? "s" : ""}
+            </p>
+          </div>
 
           {products.length === 0 ? (
             <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-16 text-center">
@@ -385,9 +410,11 @@ export function ProductManager() {
               {products.map((product) => (
                 <article
                   key={product.id}
-                  className="flex flex-col gap-5 rounded-3xl border border-white/10 bg-zinc-900/70 p-5 md:flex-row md:items-center"
+                  className="group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
                 >
-                  <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-zinc-950">
+                  <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
+
+                  <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-zinc-950">
                     {product.image ? (
                       <img
                         src={product.image}
@@ -399,7 +426,7 @@ export function ProductManager() {
                     )}
                   </div>
 
-                  <div className="min-w-0 flex-1">
+                  <div className="relative min-w-0 flex-1">
                     <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
                       {product.category}
                     </p>
@@ -432,7 +459,7 @@ export function ProductManager() {
                     )}
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="relative flex gap-3">
                     <button
                       type="button"
                       onClick={() => handleEdit(product)}

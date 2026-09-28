@@ -147,11 +147,18 @@ export function OrderManager() {
   return (
     <section className="mt-10">
       <div className="mb-6">
-        <h2 className="text-2xl font-black text-white">
-          Pedidos recentes
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-400">
+          Vendas
+        </span>
+
+        <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+          Pedidos{" "}
+          <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+            recentes
+          </span>
         </h2>
 
-        <p className="mt-1 text-sm text-zinc-500">
+        <p className="mt-2 text-sm text-zinc-500">
           Acompanhe e atualize o status dos pedidos da loja.
         </p>
       </div>
@@ -225,9 +232,13 @@ export function OrderManager() {
 
       {/* Contagem */}
       {orders.length > 0 && (
-        <p className="mb-4 text-sm text-zinc-500">
-          {filteredOrders.length} de {orders.length} pedido(s)
-        </p>
+        <div className="mb-4 flex items-center gap-2">
+          <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
+          <p className="text-sm text-zinc-400">
+            <span className="font-bold text-white">{filteredOrders.length}</span>{" "}
+            de {orders.length} pedido(s)
+          </p>
+        </div>
       )}
 
       {orders.length === 0 ? (
@@ -271,9 +282,11 @@ export function OrderManager() {
             return (
               <article
                 key={order.id}
-                className="rounded-3xl border border-white/10 bg-zinc-900/70 p-6 transition hover:border-violet-500/30"
+                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30"
               >
-                <div className="flex flex-col justify-between gap-5 lg:flex-row">
+                <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
+
+                <div className="relative flex flex-col justify-between gap-5 lg:flex-row">
                   <div>
                     <p className="text-xs uppercase tracking-wider text-zinc-500">
                       Pedido
@@ -304,9 +317,9 @@ export function OrderManager() {
                   </div>
                 </div>
 
-                <div className="my-5 h-px bg-white/10" />
+                <div className="relative my-5 h-px bg-white/10" />
 
-                <div className="grid gap-5 md:grid-cols-3">
+                <div className="relative grid gap-5 md:grid-cols-3">
                   <div>
                     <p className="text-xs uppercase tracking-wider text-zinc-500">
                       Cliente
@@ -402,17 +415,17 @@ export function OrderManager() {
                       </p>
                     )}
 
-{order.shipping && order.shipping.price > 0 && (
-  <p className="mt-1 text-xs text-zinc-500">
-    Frete:{" "}
-    <span className="font-semibold text-zinc-300">
-      {order.shipping.price.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })}
-    </span>
-  </p>
-)}
+                    {order.shipping && order.shipping.price > 0 && (
+                      <p className="mt-1 text-xs text-zinc-500">
+                        Frete:{" "}
+                        <span className="font-semibold text-zinc-300">
+                          {order.shipping.price.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
               </article>

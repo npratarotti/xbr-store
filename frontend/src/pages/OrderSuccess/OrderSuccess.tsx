@@ -99,8 +99,11 @@ export function OrderSuccess() {
               XBR Store
             </span>
 
-            <h1 className="mt-3 text-4xl font-black text-white md:text-5xl">
-              Pedido realizado!
+            <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+              Pedido{" "}
+              <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+                realizado!
+              </span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-xl text-zinc-400">

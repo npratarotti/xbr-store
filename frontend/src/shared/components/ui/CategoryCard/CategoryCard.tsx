@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 type CategoryCardProps = {
   name: string;
   image: string;
@@ -8,7 +10,8 @@ export function CategoryCard({
   image,
 }: CategoryCardProps) {
   return (
-    <button
+    <Link
+      to={`/products?category=${encodeURIComponent(name)}`}
       className="
         group
         relative
@@ -122,6 +125,6 @@ export function CategoryCard({
           group-hover:w-10
         "
       />
-    </button>
+    </Link>
   );
 }

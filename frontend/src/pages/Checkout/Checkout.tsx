@@ -51,37 +51,39 @@ export function Checkout() {
   const [appliedCoupon, setAppliedCoupon] =
     useState<AppliedCoupon | null>(null);
 
-    // Frete
-const [shippingResult, setShippingResult] = useState<{
-  price: number;
-  days: number;
-} | null>(null);
+  // Frete
+  const [shippingResult, setShippingResult] = useState<{
+    price: number;
+    days: number;
+  } | null>(null);
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
+  // ===== Effect do FRETE =====
+  useEffect(() => {
+    if (!cep.trim()) {
+      setShippingResult(null);
+      return;
+    }
+
+    const result = calculateShipping(shippingConfig, cep, subtotal);
+
+    if (!result) {
+      setShippingResult(null);
+      return;
+    }
+
+    setShippingResult({ price: result.price, days: result.days });
+  }, [cep, subtotal, shippingConfig]);
+
+  // ===== Effect do CUPOM =====
   // Recalcula o desconto sempre que o subtotal muda.
   // Se o cupom deixar de ser válido (ex.: subtotal caiu abaixo do mínimo),
   // remove automaticamente e avisa.
   useEffect(() => {
-    useEffect(() => {
-      if (!cep.trim()) {
-        setShippingResult(null);
-        return;
-      }
-    
-      const result = calculateShipping(shippingConfig, cep, subtotal);
-    
-      if (!result) {
-        setShippingResult(null);
-        return;
-      }
-    
-      setShippingResult({ price: result.price, days: result.days });
-    }, [cep, subtotal, shippingConfig]);
-
     if (!appliedCoupon) return;
 
     const coupon = findCoupon(coupons, appliedCoupon.code);
@@ -94,11 +96,11 @@ const [shippingResult, setShippingResult] = useState<{
 
     const result = validateCoupon(coupon, subtotal);
 
-if (result.valid === false) {
-  setAppliedCoupon(null);
-  setCouponError(result.reason);
-  return;
-}
+    if (result.valid === false) {
+      setAppliedCoupon(null);
+      setCouponError(result.reason);
+      return;
+    }
 
     if (result.discount !== appliedCoupon.discount) {
       setAppliedCoupon({
@@ -111,8 +113,8 @@ if (result.valid === false) {
   }, [subtotal, coupons, appliedCoupon]);
 
   const discount = appliedCoupon?.discount ?? 0;
-const shippingPrice = shippingResult?.price ?? 0;
-const finalTotal = Math.max(0, subtotal - discount + shippingPrice);
+  const shippingPrice = shippingResult?.price ?? 0;
+  const finalTotal = Math.max(0, subtotal - discount + shippingPrice);
 
   const handleApplyCoupon = () => {
     setCouponError("");
@@ -133,10 +135,10 @@ const finalTotal = Math.max(0, subtotal - discount + shippingPrice);
 
     const result = validateCoupon(coupon, subtotal);
 
-if (result.valid === false) {
-  setCouponError(result.reason ?? "Cupom inválido.");
-  return;
-}
+    if (result.valid === false) {
+      setCouponError(result.reason ?? "Cupom inválido.");
+      return;
+    }
 
     setAppliedCoupon({
       code: coupon.code,
@@ -236,11 +238,11 @@ if (result.valid === false) {
       discount,
 
       shipping: shippingResult
-    ? {
-        price: shippingResult.price,
-        days: shippingResult.days,
-      }
-    : { price: 0, days: 0 },
+        ? {
+            price: shippingResult.price,
+            days: shippingResult.days,
+          }
+        : { price: 0, days: 0 },
 
       coupon: appliedCoupon
         ? {
@@ -648,30 +650,30 @@ if (result.valid === false) {
             </div>
 
             <div className="mt-4 flex justify-between text-zinc-400">
-  <span>
-    Frete
-    {shippingResult && shippingResult.days > 0 && (
-      <span className="ml-2 text-xs text-zinc-600">
-        ({shippingResult.days} {shippingResult.days === 1 ? "dia" : "dias"})
-      </span>
-    )}
-  </span>
+              <span>
+                Frete
+                {shippingResult && shippingResult.days > 0 && (
+                  <span className="ml-2 text-xs text-zinc-600">
+                    ({shippingResult.days} {shippingResult.days === 1 ? "dia" : "dias"})
+                  </span>
+                )}
+              </span>
 
-  {!cep.trim() ? (
-    <span className="text-zinc-500">—</span>
-  ) : !shippingResult ? (
-    <span className="text-zinc-500">CEP inválido</span>
-  ) : shippingResult.price === 0 ? (
-    <span className="text-green-400">Grátis</span>
-  ) : (
-    <span>
-      {shippingResult.price.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })}
-    </span>
-  )}
-</div>
+              {!cep.trim() ? (
+                <span className="text-zinc-500">—</span>
+              ) : !shippingResult ? (
+                <span className="text-zinc-500">CEP inválido</span>
+              ) : shippingResult.price === 0 ? (
+                <span className="text-green-400">Grátis</span>
+              ) : (
+                <span>
+                  {shippingResult.price.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </span>
+              )}
+            </div>
 
             {appliedCoupon && (
               <div className="mt-4 flex justify-between text-green-400">

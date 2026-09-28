@@ -48,10 +48,12 @@ export function Profile() {
             XBR Store
           </span>
 
-          <h1 className="mt-3 text-5xl font-black text-white">
-            Minha conta
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+            Minha{" "}
+            <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+              conta
+            </span>
           </h1>
-
           <p className="mt-4 text-zinc-400">
             Gerencie seus dados e acompanhe seus pedidos.
           </p>

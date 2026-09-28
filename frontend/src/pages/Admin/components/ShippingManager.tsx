@@ -239,22 +239,31 @@ export function ShippingManager() {
     <>
       <section id="gestao-frete" className="mt-10">
         <div className="mb-6">
-          <h2 className="text-2xl font-black text-white">
-            Frete e entrega
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-400">
+            Logística
+          </span>
+
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+            Frete e{" "}
+            <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+              entrega
+            </span>
           </h2>
 
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-zinc-500">
             Configure faixas de CEP e regras de frete grátis.
           </p>
         </div>
 
         {/* CONFIG GERAL */}
-        <div className="rounded-3xl border border-white/10 bg-zinc-900/70 p-6">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-violet-400">
-            Configurações gerais
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6">
+          <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
+
+          <h3 className="relative text-sm font-bold uppercase tracking-wider text-violet-400">
+            ⚙️ Configurações gerais
           </h3>
 
-          <div className="mt-5 grid gap-5 md:grid-cols-3">
+          <div className="relative mt-5 grid gap-5 md:grid-cols-3">
             <div>
               <label className="mb-2 block text-xs font-medium text-zinc-400">
                 Frete grátis a partir de (R$)
@@ -307,7 +316,7 @@ export function ShippingManager() {
           <button
             type="button"
             onClick={handleSaveGeneral}
-            className="mt-6 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3 font-bold text-white transition hover:scale-[1.02]"
+            className="relative mt-6 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3 font-bold text-white shadow-lg shadow-violet-700/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98]"
           >
             Salvar configurações
           </button>
@@ -317,13 +326,15 @@ export function ShippingManager() {
         <form
           onSubmit={handleSubmitZone}
           noValidate
-          className="mt-8 rounded-3xl border border-white/10 bg-zinc-900/70 p-6"
+          className="relative mt-8 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6"
         >
-          <h3 className="text-sm font-bold uppercase tracking-wider text-violet-400">
-            {editingId ? "Editar faixa" : "Nova faixa"}
+          <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
+
+          <h3 className="relative text-sm font-bold uppercase tracking-wider text-violet-400">
+            {editingId ? "✏️ Editar faixa" : "➕ Nova faixa"}
           </h3>
 
-          <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-5">
+          <div className="relative mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-5">
             <div>
               <input
                 type="text"
@@ -403,10 +414,10 @@ export function ShippingManager() {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="relative mt-6 flex flex-wrap gap-3">
             <button
               type="submit"
-              className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white transition hover:scale-[1.02]"
+              className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white shadow-lg shadow-violet-700/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98]"
             >
               {editingId ? "Salvar alterações" : "Adicionar faixa"}
             </button>
@@ -425,9 +436,16 @@ export function ShippingManager() {
 
         {/* LISTA */}
         <div className="mt-8">
-          <p className="mb-4 text-sm text-zinc-500">
-            {config.zones.length} faixa(s) de CEP cadastrada(s)
-          </p>
+          <div className="mb-4 flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
+            <p className="text-sm text-zinc-400">
+              <span className="font-bold text-white">
+                {config.zones.length}
+              </span>{" "}
+              faixa{config.zones.length !== 1 ? "s" : ""} de CEP cadastrada
+              {config.zones.length !== 1 ? "s" : ""}
+            </p>
+          </div>
 
           {config.zones.length === 0 ? (
             <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-16 text-center">
@@ -448,9 +466,11 @@ export function ShippingManager() {
                 .map((zone) => (
                   <article
                     key={zone.id}
-                    className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-zinc-900/70 p-5 md:flex-row md:items-center"
+                    className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
                   >
-                    <div className="min-w-0 flex-1">
+                    <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
+
+                    <div className="relative min-w-0 flex-1">
                       <h3 className="text-lg font-black text-white">
                         {zone.label}
                       </h3>
@@ -470,7 +490,7 @@ export function ShippingManager() {
                       </p>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="relative flex gap-3">
                       <button
                         type="button"
                         onClick={() => handleEditZone(zone)}

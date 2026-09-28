@@ -56,8 +56,11 @@ export function Login() {
 
             <p className="mt-2 text-sm text-zinc-500">Store</p>
 
-            <h1 className="mt-8 text-3xl font-black text-white">
-              Bem-vindo de volta
+            <h1 className="mt-8 text-3xl font-black tracking-tight text-white">
+              Bem-vindo{" "}
+              <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+                de volta
+              </span>
             </h1>
 
             <p className="mt-3 text-zinc-500">

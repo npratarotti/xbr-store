@@ -225,11 +225,18 @@ export function CouponManager() {
     <>
       <section id="gestao-cupons" className="mt-10">
         <div className="mb-6">
-          <h2 className="text-2xl font-black text-white">
-            Cupons de desconto
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-400">
+            Promoções
+          </span>
+
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+            Cupons de{" "}
+            <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+              desconto
+            </span>
           </h2>
 
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-zinc-500">
             Crie e gerencie cupons para suas promoções.
           </p>
         </div>
@@ -237,9 +244,20 @@ export function CouponManager() {
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="rounded-3xl border border-white/10 bg-zinc-900/70 p-6"
+          className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6"
         >
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
+          <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
+
+          <div className="relative mb-5 flex items-center gap-2">
+            <span className="text-lg">
+              {editingCode ? "✏️" : "🎟️"}
+            </span>
+            <p className="text-sm font-semibold text-zinc-300">
+              {editingCode ? "Editando cupom" : "Novo cupom"}
+            </p>
+          </div>
+
+          <div className="relative grid gap-5 md:grid-cols-2 lg:grid-cols-5">
             <div className="lg:col-span-1">
               <input
                 type="text"
@@ -320,10 +338,10 @@ export function CouponManager() {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="relative mt-6 flex flex-wrap gap-3">
             <button
               type="submit"
-              className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white transition hover:scale-[1.02]"
+              className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white shadow-lg shadow-violet-700/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98]"
             >
               {editingCode ? "Salvar alterações" : "Adicionar cupom"}
             </button>
@@ -341,9 +359,14 @@ export function CouponManager() {
         </form>
 
         <div className="mt-8">
-          <p className="mb-4 text-sm text-zinc-500">
-            {coupons.length} cupom(ns) cadastrado(s)
-          </p>
+          <div className="mb-4 flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
+            <p className="text-sm text-zinc-400">
+              <span className="font-bold text-white">{coupons.length}</span>{" "}
+              cupom{coupons.length !== 1 ? "s" : ""} cadastrado
+              {coupons.length !== 1 ? "s" : ""}
+            </p>
+          </div>
 
           {coupons.length === 0 ? (
             <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-16 text-center">
@@ -365,9 +388,11 @@ export function CouponManager() {
                 return (
                   <article
                     key={coupon.code}
-                    className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-zinc-900/70 p-5 md:flex-row md:items-center"
+                    className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
                   >
-                    <div className="min-w-0 flex-1">
+                    <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
+
+                    <div className="relative min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-lg font-black tracking-wider text-white">
                           {coupon.code}
@@ -410,7 +435,7 @@ export function CouponManager() {
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
+                    <div className="relative flex flex-wrap gap-3">
                       <button
                         type="button"
                         onClick={() => handleToggleActive(coupon)}

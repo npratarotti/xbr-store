@@ -25,8 +25,11 @@ export function Cart() {
             XBR Store
           </span>
 
-          <h1 className="mt-3 text-5xl font-black text-white">
-            Seu carrinho
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+            Seu{" "}
+            <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+              carrinho
+            </span>
           </h1>
 
           <p className="mt-4 text-zinc-400">
