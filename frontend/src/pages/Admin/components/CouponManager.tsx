@@ -215,10 +215,10 @@ export function CouponManager() {
   };
 
   const inputClass = (hasError: boolean) =>
-    `w-full rounded-2xl border bg-zinc-950 px-5 py-3.5 text-white outline-none placeholder:text-zinc-600 transition ${
+    `w-full rounded-2xl border bg-background px-5 py-3.5 text-text outline-none placeholder:text-muted transition ${
       hasError
         ? "border-red-500/60 focus:border-red-500"
-        : "border-white/10 focus:border-violet-500"
+        : "border-border focus:border-violet-500"
     }`;
 
   return (
@@ -229,14 +229,14 @@ export function CouponManager() {
             Promoções
           </span>
 
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-text">
             Cupons de{" "}
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
               desconto
             </span>
           </h2>
 
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-muted">
             Crie e gerencie cupons para suas promoções.
           </p>
         </div>
@@ -244,7 +244,7 @@ export function CouponManager() {
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6"
+          className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6"
         >
           <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
 
@@ -252,7 +252,7 @@ export function CouponManager() {
             <span className="text-lg">
               {editingCode ? "✏️" : "🎟️"}
             </span>
-            <p className="text-sm font-semibold text-zinc-300">
+            <p className="text-sm font-semibold text-text/80">
               {editingCode ? "Editando cupom" : "Novo cupom"}
             </p>
           </div>
@@ -282,7 +282,7 @@ export function CouponManager() {
                 onChange={(event) =>
                   setType(event.target.value as CouponType)
                 }
-                className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none focus:border-violet-500"
+                className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none focus:border-violet-500"
               >
                 <option value="percent">Percentual (%)</option>
                 <option value="fixed">Valor fixo (R$)</option>
@@ -350,7 +350,7 @@ export function CouponManager() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-2xl border border-white/10 bg-zinc-950 px-7 py-3.5 font-semibold text-zinc-300 transition hover:border-white/20 hover:text-white"
+                className="rounded-2xl border border-border bg-background px-7 py-3.5 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text"
               >
                 Cancelar
               </button>
@@ -361,22 +361,22 @@ export function CouponManager() {
         <div className="mt-8">
           <div className="mb-4 flex items-center gap-2">
             <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
-            <p className="text-sm text-zinc-400">
-              <span className="font-bold text-white">{coupons.length}</span>{" "}
+            <p className="text-sm text-muted">
+              <span className="font-bold text-text">{coupons.length}</span>{" "}
               cupom{coupons.length !== 1 ? "s" : ""} cadastrado
               {coupons.length !== 1 ? "s" : ""}
             </p>
           </div>
 
           {coupons.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-16 text-center">
+            <div className="rounded-3xl border border-border bg-surface/60 px-6 py-16 text-center">
               <div className="text-5xl">🎟️</div>
 
-              <p className="mt-4 font-semibold text-white">
+              <p className="mt-4 font-semibold text-text">
                 Nenhum cupom cadastrado
               </p>
 
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className="mt-2 text-sm text-muted">
                 Os cupons criados aparecerão aqui.
               </p>
             </div>
@@ -388,18 +388,18 @@ export function CouponManager() {
                 return (
                   <article
                     key={coupon.code}
-                    className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
+                    className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
                   >
                     <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
 
                     <div className="relative min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-black tracking-wider text-white">
+                        <h3 className="text-lg font-black tracking-wider text-text">
                           {coupon.code}
                         </h3>
 
                         {!coupon.active && (
-                          <span className="rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 text-xs font-semibold text-zinc-400">
+                          <span className="rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 text-xs font-semibold text-muted">
                             Inativo
                           </span>
                         )}
@@ -411,7 +411,7 @@ export function CouponManager() {
                         )}
                       </div>
 
-                      <p className="mt-2 text-sm text-zinc-300">
+                      <p className="mt-2 text-sm text-text/80">
                         <span className="font-semibold text-violet-400">
                           {coupon.type === "percent"
                             ? `${coupon.value}% OFF`
@@ -419,13 +419,13 @@ export function CouponManager() {
                         </span>
 
                         {typeof coupon.minTotal === "number" && (
-                          <span className="ml-2 text-zinc-500">
+                          <span className="ml-2 text-muted">
                             · mínimo {formatCurrency(coupon.minTotal)}
                           </span>
                         )}
 
                         {coupon.expiresAt && (
-                          <span className="ml-2 text-zinc-500">
+                          <span className="ml-2 text-muted">
                             · válido até{" "}
                             {new Date(
                               coupon.expiresAt
@@ -439,7 +439,7 @@ export function CouponManager() {
                       <button
                         type="button"
                         onClick={() => handleToggleActive(coupon)}
-                        className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-5 py-3 text-sm font-semibold text-amber-400 transition hover:bg-amber-500/20"
+                        className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-5 py-3 text-sm font-semibold text-amber-500 transition hover:bg-amber-500/20"
                       >
                         {coupon.active ? "Desativar" : "Ativar"}
                       </button>

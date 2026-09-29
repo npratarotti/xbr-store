@@ -17,17 +17,14 @@ export function Products() {
   const [category, setCategory] = useState(urlCategory || "Todos");
   const [sort, setSort] = useState("default");
 
-  // 1. URL mudou (back/forward) → sincroniza o input de busca
   useEffect(() => {
     setSearch(urlSearch);
   }, [urlSearch]);
 
-  // 2. URL mudou → sincroniza a categoria
   useEffect(() => {
     setCategory(urlCategory || "Todos");
   }, [urlCategory]);
 
-  // 3. Usuário digitou → debounce → atualiza a URL
   useEffect(() => {
     if (search === urlSearch) return;
 
@@ -46,7 +43,6 @@ export function Products() {
     return () => clearTimeout(timer);
   }, [search, urlSearch, searchParams, setSearchParams]);
 
-  // 4. Troca de categoria pelo <select> → atualiza a URL
   const handleCategoryChange = (value: string) => {
     setCategory(value);
 
@@ -61,7 +57,6 @@ export function Products() {
     setSearchParams(next, { replace: true });
   };
 
-  // 5. Categorias do mock ∪ produtos reais
   const dynamicCategories = useMemo(() => {
     const names = new Set<string>([
       ...categories.map((c) => c.name),
@@ -108,35 +103,35 @@ export function Products() {
   };
 
   return (
-    <main className="min-h-screen bg-[#09090B] py-20">
+    <main className="min-h-screen bg-background py-20 transition-colors duration-300">
       <Container>
         <div className="mb-12">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">
             XBR Store
           </span>
 
-          <h1 className="mt-3 text-5xl font-black text-white md:text-6xl">
+          <h1 className="mt-3 text-5xl font-black text-text md:text-6xl">
             Todos os produtos
           </h1>
 
-          <p className="mt-4 max-w-2xl text-lg text-zinc-400">
+          <p className="mt-4 max-w-2xl text-lg text-muted">
             Tecnologia de alto desempenho para acompanhar o seu ritmo.
           </p>
         </div>
 
-        <div className="mb-10 flex flex-col gap-4 rounded-3xl border border-white/10 bg-zinc-900/60 p-5 md:flex-row">
+        <div className="mb-10 flex flex-col gap-4 rounded-3xl border border-border bg-surface/60 p-5 md:flex-row">
           <input
             type="text"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar produtos..."
-            className="flex-1 rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+            className="flex-1 rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
           />
 
           <select
             value={category}
             onChange={(event) => handleCategoryChange(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-zinc-300 outline-none focus:border-violet-500"
+            className="rounded-2xl border border-border bg-background px-5 py-3.5 text-muted outline-none focus:border-violet-500"
           >
             <option value="Todos">Todas as categorias</option>
 
@@ -150,7 +145,7 @@ export function Products() {
           <select
             value={sort}
             onChange={(event) => setSort(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-zinc-300 outline-none focus:border-violet-500"
+            className="rounded-2xl border border-border bg-background px-5 py-3.5 text-muted outline-none focus:border-violet-500"
           >
             <option value="default">Ordenar por</option>
             <option value="price-asc">Menor preço</option>
@@ -159,7 +154,6 @@ export function Products() {
           </select>
         </div>
 
-        {/* Chip do filtro ativo */}
         {category !== "Todos" && (
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm font-semibold text-violet-300">
@@ -178,7 +172,7 @@ export function Products() {
         )}
 
         <div className="mb-6 flex items-center justify-between">
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted">
             {filteredProducts.length}{" "}
             {filteredProducts.length === 1
               ? "produto encontrado"
@@ -204,12 +198,12 @@ export function Products() {
             ))}
           </div>
         ) : (
-          <div className="rounded-3xl border border-white/10 bg-zinc-900/50 py-20 text-center">
-            <p className="text-xl font-bold text-white">
+          <div className="rounded-3xl border border-border bg-surface/50 py-20 text-center">
+            <p className="text-xl font-bold text-text">
               Nenhum produto encontrado
             </p>
 
-            <p className="mt-2 text-zinc-500">
+            <p className="mt-2 text-muted">
               Tente buscar outro produto ou categoria.
             </p>
 

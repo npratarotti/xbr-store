@@ -21,7 +21,6 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  // Fecha com Esc + foca no "Cancelar" ao abrir
   useEffect(() => {
     if (!open) return;
 
@@ -31,10 +30,8 @@ export function ConfirmDialog({
 
     document.addEventListener("keydown", handleKey);
 
-    // foca no cancelar depois do render
     requestAnimationFrame(() => cancelRef.current?.focus());
 
-    // trava scroll do body enquanto o modal está aberto
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
@@ -55,18 +52,18 @@ export function ConfirmDialog({
       aria-labelledby="confirm-dialog-title"
     >
       <div
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-zinc-900 p-7 shadow-2xl"
+        className="w-full max-w-md rounded-3xl border border-border bg-surface p-7 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <h2
           id="confirm-dialog-title"
-          className="text-xl font-black text-white"
+          className="text-xl font-black text-text"
         >
           {title}
         </h2>
 
         {description && (
-          <p className="mt-3 text-sm leading-6 text-zinc-400">
+          <p className="mt-3 text-sm leading-6 text-muted">
             {description}
           </p>
         )}
@@ -76,7 +73,7 @@ export function ConfirmDialog({
             ref={cancelRef}
             type="button"
             onClick={onCancel}
-            className="rounded-2xl border border-white/10 bg-zinc-950 px-6 py-3 font-semibold text-zinc-300 transition hover:border-white/20 hover:text-white"
+            className="rounded-2xl border border-border bg-background px-6 py-3 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text"
           >
             {cancelLabel}
           </button>

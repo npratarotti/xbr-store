@@ -9,7 +9,7 @@ import {
 
 type StatusFilter = "Todos" | OrderStatus;
 type PeriodFilter = "all" | "today" | "7d" | "30d";
-type CustomerFilter = "all" | string; // string = email do cliente
+type CustomerFilter = "all" | string;
 
 function isWithinPeriod(createdAt: string, period: PeriodFilter) {
   if (period === "all") return true;
@@ -56,7 +56,6 @@ export function OrderManager() {
     }
   };
 
-  // Lista de clientes únicos (por email), com contagem de pedidos
   const customers = useMemo(() => {
     const map = new Map<
       string,
@@ -151,14 +150,14 @@ export function OrderManager() {
           Vendas
         </span>
 
-        <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+        <h2 className="mt-2 text-2xl font-black tracking-tight text-text">
           Pedidos{" "}
           <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
             recentes
           </span>
         </h2>
 
-        <p className="mt-2 text-sm text-zinc-500">
+        <p className="mt-2 text-sm text-muted">
           Acompanhe e atualize o status dos pedidos da loja.
         </p>
       </div>
@@ -177,11 +176,17 @@ export function OrderManager() {
                 className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
                   isActive
                     ? "border-violet-500/40 bg-violet-500/20 text-violet-300"
-                    : "border-white/10 bg-zinc-900/60 text-zinc-400 hover:border-white/20 hover:text-white"
+                    : "border-border bg-surface/60 text-muted hover:border-violet-500/30 hover:text-text"
                 }`}
               >
                 {status}{" "}
-                <span className="ml-1 text-zinc-500">
+                <span
+                  className={
+                    isActive
+                      ? "ml-1 text-violet-200"
+                      : "ml-1 text-muted/80"
+                  }
+                >
                   ({countsByStatus[status]})
                 </span>
               </button>
@@ -198,13 +203,13 @@ export function OrderManager() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar por número, nome ou e-mail..."
-            className="flex-1 rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-violet-500"
+            className="flex-1 rounded-2xl border border-border bg-background px-5 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-violet-500"
           />
 
           <select
             value={customerFilter}
             onChange={(event) => setCustomerFilter(event.target.value)}
-            className="rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3 text-sm text-zinc-300 outline-none focus:border-violet-500"
+            className="rounded-2xl border border-border bg-background px-5 py-3 text-sm text-muted outline-none transition focus:border-violet-500"
           >
             <option value="all">Todos os clientes</option>
 
@@ -220,7 +225,7 @@ export function OrderManager() {
             onChange={(event) =>
               setPeriodFilter(event.target.value as PeriodFilter)
             }
-            className="rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3 text-sm text-zinc-300 outline-none focus:border-violet-500"
+            className="rounded-2xl border border-border bg-background px-5 py-3 text-sm text-muted outline-none transition focus:border-violet-500"
           >
             <option value="all">Todo o período</option>
             <option value="today">Hoje</option>
@@ -234,28 +239,28 @@ export function OrderManager() {
       {orders.length > 0 && (
         <div className="mb-4 flex items-center gap-2">
           <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
-          <p className="text-sm text-zinc-400">
-            <span className="font-bold text-white">{filteredOrders.length}</span>{" "}
+          <p className="text-sm text-muted">
+            <span className="font-bold text-text">{filteredOrders.length}</span>{" "}
             de {orders.length} pedido(s)
           </p>
         </div>
       )}
 
       {orders.length === 0 ? (
-        <div className="rounded-3xl border border-white/10 bg-zinc-900/70 px-6 py-20 text-center">
+        <div className="rounded-3xl border border-border bg-surface/70 px-6 py-20 text-center">
           <div className="text-5xl">📦</div>
 
-          <h3 className="mt-5 text-xl font-bold text-white">
+          <h3 className="mt-5 text-xl font-bold text-text">
             Nenhum pedido ainda
           </h3>
 
-          <p className="mt-2 text-zinc-500">
+          <p className="mt-2 text-muted">
             Os pedidos realizados pelos clientes aparecerão aqui.
           </p>
         </div>
       ) : filteredOrders.length === 0 ? (
-        <div className="rounded-3xl border border-white/10 bg-zinc-900/70 px-6 py-16 text-center">
-          <p className="text-zinc-400">
+        <div className="rounded-3xl border border-border bg-surface/70 px-6 py-16 text-center">
+          <p className="text-muted">
             Nenhum pedido corresponde aos filtros.
           </p>
 
@@ -267,7 +272,7 @@ export function OrderManager() {
               setCustomerFilter("all");
               setSearch("");
             }}
-            className="mt-5 rounded-2xl border border-white/10 bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-zinc-300 transition hover:border-violet-500 hover:text-white"
+            className="mt-5 rounded-2xl border border-border bg-background px-5 py-2.5 text-sm font-semibold text-muted transition hover:border-violet-500 hover:text-text"
           >
             Limpar filtros
           </button>
@@ -282,21 +287,21 @@ export function OrderManager() {
             return (
               <article
                 key={order.id}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30"
+                className="group relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30"
               >
                 <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
 
                 <div className="relative flex flex-col justify-between gap-5 lg:flex-row">
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-zinc-500">
+                    <p className="text-xs uppercase tracking-wider text-muted">
                       Pedido
                     </p>
 
-                    <h3 className="mt-1 text-lg font-bold text-white">
+                    <h3 className="mt-1 text-lg font-bold text-text">
                       #{order.id}
                     </h3>
 
-                    <p className="mt-2 text-sm text-zinc-500">
+                    <p className="mt-2 text-sm text-muted">
                       {new Date(order.createdAt).toLocaleString("pt-BR")}
                     </p>
                   </div>
@@ -317,31 +322,31 @@ export function OrderManager() {
                   </div>
                 </div>
 
-                <div className="relative my-5 h-px bg-white/10" />
+                <div className="relative my-5 h-px bg-border" />
 
                 <div className="relative grid gap-5 md:grid-cols-3">
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-zinc-500">
+                    <p className="text-xs uppercase tracking-wider text-muted">
                       Cliente
                     </p>
 
-                    <p className="mt-2 font-semibold text-white">
+                    <p className="mt-2 font-semibold text-text">
                       {order.customer.name}
                     </p>
 
-                    <p className="mt-1 break-all text-sm text-zinc-500">
+                    <p className="mt-1 break-all text-sm text-muted">
                       {order.customer.email}
                     </p>
 
                     {order.customer.phone && (
-                      <p className="mt-1 text-sm text-zinc-500">
+                      <p className="mt-1 text-sm text-muted">
                         {order.customer.phone}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-zinc-500">
+                    <p className="text-xs uppercase tracking-wider text-muted">
                       Produtos
                     </p>
 
@@ -351,11 +356,11 @@ export function OrderManager() {
                           key={item.id}
                           className="flex justify-between gap-4 text-sm"
                         >
-                          <span className="text-zinc-300">
+                          <span className="text-text/80">
                             {item.name} × {item.quantity}
                           </span>
 
-                          <span className="text-zinc-500">
+                          <span className="text-muted">
                             {formatCurrency(item.price * item.quantity)}
                           </span>
                         </div>
@@ -364,7 +369,7 @@ export function OrderManager() {
                   </div>
 
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-zinc-500">
+                    <p className="text-xs uppercase tracking-wider text-muted">
                       Atualizar status
                     </p>
 
@@ -380,7 +385,7 @@ export function OrderManager() {
                           event.target.value as OrderStatus
                         )
                       }
-                      className="mt-2 w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm font-semibold text-white outline-none transition focus:border-violet-500"
+                      className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm font-semibold text-text outline-none transition focus:border-violet-500"
                     >
                       {ORDER_STATUSES.map((status) => (
                         <option key={status} value={status}>
@@ -390,9 +395,9 @@ export function OrderManager() {
                     </select>
 
                     {order.payment && (
-                      <p className="mt-3 text-xs text-zinc-500">
+                      <p className="mt-3 text-xs text-muted">
                         Pagamento:{" "}
-                        <span className="font-semibold text-zinc-300">
+                        <span className="font-semibold text-text/80">
                           {order.payment === "pix"
                             ? "PIX"
                             : order.payment === "credit"
@@ -403,9 +408,9 @@ export function OrderManager() {
                     )}
 
                     {order.coupon && (
-                      <p className="mt-1 text-xs text-zinc-500">
+                      <p className="mt-1 text-xs text-muted">
                         Cupom:{" "}
-                        <span className="font-semibold text-green-400">
+                        <span className="font-semibold text-green-500">
                           {order.coupon.code} (-
                           {order.coupon.discount.toLocaleString("pt-BR", {
                             style: "currency",
@@ -416,9 +421,9 @@ export function OrderManager() {
                     )}
 
                     {order.shipping && order.shipping.price > 0 && (
-                      <p className="mt-1 text-xs text-zinc-500">
+                      <p className="mt-1 text-xs text-muted">
                         Frete:{" "}
-                        <span className="font-semibold text-zinc-300">
+                        <span className="font-semibold text-text/80">
                           {order.shipping.price.toLocaleString("pt-BR", {
                             style: "currency",
                             currency: "BRL",

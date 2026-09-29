@@ -6,6 +6,7 @@ import { Container } from "../Container";
 import { useCart } from "../../../../app/providers/CartProvider";
 import { useAuth } from "../../../../app/providers/AuthProvider";
 import { useProducts } from "../../../hooks/useProducts";
+import { ThemeToggle } from "../../ui/ThemeToggle/ThemeToggle";
 
 export function Header() {
   const { cartQuantity } = useCart();
@@ -25,7 +26,6 @@ export function Header() {
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const [showMobileSuggestions, setShowMobileSuggestions] = useState(false);
 
-  // Fecha o menu sempre que a rota muda
   useEffect(() => {
     setIsMenuOpen(false);
     setShowSuggestions(false);
@@ -34,7 +34,6 @@ export function Header() {
     setMobileSearchQuery("");
   }, [location.pathname]);
 
-  // Bloqueia o scroll do body quando o menu está aberto
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "";
     return () => {
@@ -42,7 +41,6 @@ export function Header() {
     };
   }, [isMenuOpen]);
 
-  // Fecha sugestões ao clicar fora (desktop)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -58,7 +56,6 @@ export function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fecha sugestões com Esc
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -79,10 +76,8 @@ export function Header() {
 
   const closeMenu = () => setIsMenuOpen(false);
 
-  // Sugestões de busca (mesma lógica para desktop e mobile)
   const getSuggestions = (query: string) => {
     const q = query.toLowerCase().trim();
-
     if (q.length < 2) return [];
 
     return products
@@ -136,7 +131,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur transition-colors duration-300">
       <Container>
         <div className="flex h-20 items-center justify-between gap-6">
 
@@ -145,7 +140,7 @@ export function Header() {
             <h1 className="text-3xl font-black text-violet-500 transition group-hover:text-fuchsia-400">
               XBR
             </h1>
-            <p className="text-xs text-zinc-500">Store</p>
+            <p className="text-xs text-muted">Store</p>
           </Link>
 
           {/* Busca (desktop) */}
@@ -167,14 +162,13 @@ export function Header() {
                   }
                 }}
                 placeholder="Buscar produtos..."
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                className="w-full rounded-xl border border-border bg-surface px-5 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-violet-500"
               />
             </form>
 
-            {/* Dropdown de sugestões (desktop) */}
             {showSuggestions && desktopSuggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/50">
-                <ul className="divide-y divide-white/5">
+              <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-background shadow-2xl shadow-black/50">
+                <ul className="divide-y divide-border/50">
                   {desktopSuggestions.map((product) => (
                     <li key={product.id}>
                       <button
@@ -182,7 +176,7 @@ export function Header() {
                         onClick={() => goToProduct(product.id)}
                         className="flex w-full items-center gap-4 px-4 py-3 text-left transition hover:bg-violet-500/10"
                       >
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-zinc-900">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-surface">
                           <img
                             src={product.image}
                             alt={product.name}
@@ -191,11 +185,10 @@ export function Header() {
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-white">
+                          <p className="truncate text-sm font-semibold text-text">
                             {product.name}
                           </p>
-
-                          <p className="mt-0.5 truncate text-xs text-zinc-500">
+                          <p className="mt-0.5 truncate text-xs text-muted">
                             {product.category}
                           </p>
                         </div>
@@ -214,7 +207,7 @@ export function Header() {
                 <button
                   type="button"
                   onClick={() => goToAllResults(searchQuery)}
-                  className="flex w-full items-center justify-center gap-2 border-t border-white/10 bg-zinc-900/50 px-4 py-3 text-sm font-semibold text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300"
+                  className="flex w-full items-center justify-center gap-2 border-t border-border bg-surface px-4 py-3 text-sm font-semibold text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300"
                 >
                   Ver todos os resultados para "{searchQuery}"
                   <span>→</span>
@@ -227,28 +220,28 @@ export function Header() {
           <nav className="hidden items-center gap-5 sm:flex">
             <Link
               to="/"
-              className="text-sm font-medium text-zinc-300 transition hover:text-white"
+              className="text-sm font-medium text-muted transition hover:text-text"
             >
               Início
             </Link>
 
             <Link
               to="/products"
-              className="text-sm font-medium text-zinc-300 transition hover:text-white"
+              className="text-sm font-medium text-muted transition hover:text-text"
             >
               Produtos
             </Link>
 
             <Link
               to="/about"
-              className="text-sm font-medium text-zinc-300 transition hover:text-white"
+              className="text-sm font-medium text-muted transition hover:text-text"
             >
               Sobre
             </Link>
 
             <Link
               to="/wishlist"
-              className="relative text-sm font-medium text-zinc-300 transition hover:text-white"
+              className="relative text-sm font-medium text-muted transition hover:text-text"
             >
               Favoritos
             </Link>
@@ -264,7 +257,7 @@ export function Header() {
 
                 <Link
                   to="/profile"
-                  className="rounded-xl px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface hover:text-text"
                 >
                   Minha conta
                 </Link>
@@ -272,7 +265,7 @@ export function Header() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="text-sm font-medium text-zinc-500 transition hover:text-red-400"
+                  className="text-sm font-medium text-muted transition hover:text-red-400"
                 >
                   Sair
                 </button>
@@ -280,11 +273,13 @@ export function Header() {
             ) : (
               <Link
                 to="/login"
-                className="rounded-xl px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+                className="rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface hover:text-text"
               >
                 Entrar
               </Link>
             )}
+
+            <ThemeToggle />
 
             <Link
               to="/cart"
@@ -300,8 +295,10 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* Carrinho + Hamburguer (mobile) */}
+          {/* Carrinho + Toggle + Hamburguer (mobile) */}
           <div className="flex items-center gap-3 sm:hidden">
+            <ThemeToggle />
+
             <Link
               to="/cart"
               className="relative rounded-xl bg-violet-600 px-3 py-2 font-medium text-white transition hover:bg-violet-700"
@@ -319,35 +316,15 @@ export function Header() {
               onClick={() => setIsMenuOpen((prev) => !prev)}
               aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
               aria-expanded={isMenuOpen}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-200 transition hover:border-violet-500 hover:text-violet-400"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface text-text transition hover:border-violet-500 hover:text-violet-400"
             >
               {isMenuOpen ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="6" x2="21" y2="6" />
                   <line x1="3" y1="12" x2="21" y2="12" />
                   <line x1="3" y1="18" x2="21" y2="18" />
@@ -358,7 +335,7 @@ export function Header() {
         </div>
       </Container>
 
-      {/* ===== MENU MOBILE ===== */}
+      {/* MENU MOBILE */}
       <div
         onClick={closeMenu}
         className={`
@@ -371,12 +348,11 @@ export function Header() {
       <aside
         className={`
           fixed right-0 top-20 z-50 h-[calc(100vh-5rem)] w-[80%] max-w-sm
-          overflow-y-auto border-l border-zinc-800 bg-zinc-950 px-6 py-8
+          overflow-y-auto border-l border-border bg-background px-6 py-8
           transition-transform duration-300 ease-out sm:hidden
           ${isMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        {/* Busca mobile com autocomplete */}
         <div className="relative mb-6">
           <form onSubmit={handleMobileSubmit}>
             <input
@@ -392,14 +368,13 @@ export function Header() {
                 }
               }}
               placeholder="Buscar produtos..."
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-violet-500"
             />
           </form>
 
-          {/* Dropdown de sugestões (mobile) */}
           {showMobileSuggestions && mobileSuggestions.length > 0 && (
-            <div className="mt-2 overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl">
-              <ul className="divide-y divide-white/5">
+            <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
+              <ul className="divide-y divide-border/50">
                 {mobileSuggestions.map((product) => (
                   <li key={product.id}>
                     <button
@@ -407,32 +382,21 @@ export function Header() {
                       onClick={() => goToProduct(product.id)}
                       className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-violet-500/10"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-zinc-950">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="h-full w-full object-contain p-1"
-                        />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
+                        <img src={product.image} alt={product.name} className="h-full w-full object-contain p-1" />
                       </div>
-
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-semibold text-white">
-                          {product.name}
-                        </p>
-
-                        <p className="mt-0.5 truncate text-[10px] text-zinc-500">
-                          {product.category}
-                        </p>
+                        <p className="truncate text-xs font-semibold text-text">{product.name}</p>
+                        <p className="mt-0.5 truncate text-[10px] text-muted">{product.category}</p>
                       </div>
                     </button>
                   </li>
                 ))}
               </ul>
-
               <button
                 type="button"
                 onClick={() => goToAllResults(mobileSearchQuery)}
-                className="flex w-full items-center justify-center gap-2 border-t border-white/10 bg-zinc-950/50 px-3 py-2.5 text-xs font-semibold text-violet-400 transition hover:bg-violet-500/10"
+                className="flex w-full items-center justify-center gap-2 border-t border-border bg-background px-3 py-2.5 text-xs font-semibold text-violet-400 transition hover:bg-violet-500/10"
               >
                 Ver todos os resultados
                 <span>→</span>
@@ -441,68 +405,26 @@ export function Header() {
           )}
         </div>
 
-        {/* Links de navegação */}
         <nav className="flex flex-col gap-1">
-          <Link
-            to="/"
-            onClick={closeMenu}
-            className="rounded-xl px-4 py-3 text-base font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-          >
-            Início
-          </Link>
-
-          <Link
-            to="/products"
-            onClick={closeMenu}
-            className="rounded-xl px-4 py-3 text-base font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-          >
-            Produtos
-          </Link>
-
-          <Link
-            to="/about"
-            onClick={closeMenu}
-            className="rounded-xl px-4 py-3 text-base font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-          >
-            Sobre
-          </Link>
-
-          <Link
-            to="/wishlist"
-            onClick={closeMenu}
-            className="rounded-xl px-4 py-3 text-base font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-          >
-            Favoritos
-          </Link>
+          <Link to="/" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Início</Link>
+          <Link to="/products" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Produtos</Link>
+          <Link to="/about" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Sobre</Link>
+          <Link to="/wishlist" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Favoritos</Link>
 
           {user && (
             <>
-              <Link
-                to="/admin"
-                onClick={closeMenu}
-                className="rounded-xl px-4 py-3 text-base font-medium text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300"
-              >
-                Admin
-              </Link>
-
-              <Link
-                to="/profile"
-                onClick={closeMenu}
-                className="rounded-xl px-4 py-3 text-base font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-              >
-                Minha conta
-              </Link>
+              <Link to="/admin" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300">Admin</Link>
+              <Link to="/profile" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Minha conta</Link>
             </>
           )}
         </nav>
 
-        {/* Rodapé do menu */}
-        <div className="mt-8 border-t border-zinc-800 pt-6">
+        <div className="mt-8 border-t border-border pt-6">
           {user ? (
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full rounded-xl border border-zinc-700 px-4 py-3 text-center text-sm font-medium text-zinc-300 transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
+              className="w-full rounded-xl border border-border px-4 py-3 text-center text-sm font-medium text-muted transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400"
             >
               Sair da conta
             </button>

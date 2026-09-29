@@ -5,10 +5,7 @@ type CategoryCardProps = {
   image: string;
 };
 
-export function CategoryCard({
-  name,
-  image,
-}: CategoryCardProps) {
+export function CategoryCard({ name, image }: CategoryCardProps) {
   return (
     <Link
       to={`/products?category=${encodeURIComponent(name)}`}
@@ -23,10 +20,10 @@ export function CategoryCard({
         overflow-hidden
         rounded-3xl
         border
-        border-white/10
+        border-border
         bg-gradient-to-b
-        from-zinc-900
-        to-zinc-950
+        from-surface
+        to-background
         p-6
         text-center
         transition-all
@@ -65,7 +62,7 @@ export function CategoryCard({
           overflow-hidden
           rounded-2xl
           border
-          border-white/10
+          border-border
           bg-white/[0.04]
           shadow-inner
           transition-all
@@ -100,7 +97,7 @@ export function CategoryCard({
           mt-6
           text-base
           font-bold
-          text-white
+          text-text
           transition-colors
           duration-300
           group-hover:text-violet-300

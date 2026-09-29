@@ -8,7 +8,7 @@ type Product = {
   category: string;
   price: number;
   image: string;
-  stock?: number; // undefined = ilimitado
+  stock?: number;
 };
 
 type FormErrors = {
@@ -44,7 +44,6 @@ export function ProductManager() {
   const [productToDelete, setProductToDelete] =
     useState<Product | null>(null);
 
-  // Auto-dismiss do toast
   useEffect(() => {
     if (!toast) return;
 
@@ -226,46 +225,43 @@ export function ProductManager() {
   };
 
   const inputClass = (hasError: boolean) =>
-    `w-full rounded-2xl border bg-zinc-950 px-5 py-3.5 text-white outline-none placeholder:text-zinc-600 transition ${
+    `w-full rounded-2xl border bg-background px-5 py-3.5 text-text outline-none placeholder:text-muted transition ${
       hasError
         ? "border-red-500/60 focus:border-red-500"
-        : "border-white/10 focus:border-violet-500"
+        : "border-border focus:border-violet-500"
     }`;
 
   return (
     <>
       <section id="gestao-produtos" className="mt-10">
-        {/* Título */}
         <div className="mb-6">
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-400">
             Catálogo
           </span>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-text">
             Gestão de{" "}
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
               produtos
             </span>
           </h2>
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-muted">
             Cadastre, edite e gerencie os produtos da sua loja.
           </p>
         </div>
 
-        {/* Formulário */}
         <form
           id="form-produto"
           onSubmit={handleSubmit}
           noValidate
-          className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 scroll-mt-6"
+          className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6 scroll-mt-6"
         >
           <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
 
-          {/* Cabeçalho do form */}
           <div className="relative mb-5 flex items-center gap-2">
             <span className="text-lg">
               {editingId !== null ? "✏️" : "➕"}
             </span>
-            <p className="text-sm font-semibold text-zinc-300">
+            <p className="text-sm font-semibold text-text/80">
               {editingId !== null ? "Editando produto" : "Novo produto"}
             </p>
           </div>
@@ -353,7 +349,7 @@ export function ProductManager() {
                   {errors.stock}
                 </p>
               ) : (
-                <p className="mt-2 text-xs text-zinc-600">
+                <p className="mt-2 text-xs text-muted/70">
                   Deixe vazio para estoque ilimitado.
                 </p>
               )}
@@ -374,7 +370,7 @@ export function ProductManager() {
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="rounded-2xl border border-white/10 bg-zinc-950 px-7 py-3.5 font-semibold text-zinc-300 transition hover:border-white/20 hover:text-white"
+                className="rounded-2xl border border-border bg-background px-7 py-3.5 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text"
               >
                 Cancelar
               </button>
@@ -382,26 +378,25 @@ export function ProductManager() {
           </div>
         </form>
 
-        {/* Lista de produtos */}
         <div className="mt-8">
           <div className="mb-4 flex items-center gap-2">
             <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
-            <p className="text-sm text-zinc-400">
-              <span className="font-bold text-white">{products.length}</span>{" "}
+            <p className="text-sm text-muted">
+              <span className="font-bold text-text">{products.length}</span>{" "}
               produto{products.length !== 1 ? "s" : ""} cadastrado
               {products.length !== 1 ? "s" : ""}
             </p>
           </div>
 
           {products.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-16 text-center">
+            <div className="rounded-3xl border border-border bg-surface/60 px-6 py-16 text-center">
               <div className="text-5xl">📦</div>
 
-              <p className="mt-4 font-semibold text-white">
+              <p className="mt-4 font-semibold text-text">
                 Nenhum produto cadastrado
               </p>
 
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className="mt-2 text-sm text-muted">
                 Os produtos adicionados aparecerão aqui.
               </p>
             </div>
@@ -410,11 +405,11 @@ export function ProductManager() {
               {products.map((product) => (
                 <article
                   key={product.id}
-                  className="group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
+                  className="group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
                 >
                   <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
 
-                  <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-zinc-950">
+                  <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-background">
                     {product.image ? (
                       <img
                         src={product.image}
@@ -431,11 +426,11 @@ export function ProductManager() {
                       {product.category}
                     </p>
 
-                    <h3 className="mt-1 truncate text-lg font-bold text-white">
+                    <h3 className="mt-1 truncate text-lg font-bold text-text">
                       {product.name}
                     </h3>
 
-                    <p className="mt-2 text-lg font-black text-white">
+                    <p className="mt-2 text-lg font-black text-text">
                       {product.price.toLocaleString("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -449,7 +444,7 @@ export function ProductManager() {
                             ? "text-red-400"
                             : product.stock <= 5
                               ? "text-amber-400"
-                              : "text-zinc-500"
+                              : "text-muted"
                         }`}
                       >
                         {product.stock === 0

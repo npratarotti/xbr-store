@@ -1,16 +1,9 @@
 import { Link } from "react-router-dom";
-
 import { Container } from "../../shared/components/layout/Container";
-
 import { useCart } from "../../app/providers/CartProvider";
 
 export function Cart() {
-  const {
-    cart,
-    increaseQuantity,
-    decreaseQuantity,
-    removeItem,
-  } = useCart();
+  const { cart, increaseQuantity, decreaseQuantity, removeItem } = useCart();
 
   const total = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -18,34 +11,34 @@ export function Cart() {
   );
 
   return (
-    <main className="min-h-screen bg-[#09090B] py-20">
+    <main className="min-h-screen bg-background py-20 transition-colors duration-300">
       <Container>
         <div className="mb-12">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">
             XBR Store
           </span>
 
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-text md:text-5xl">
             Seu{" "}
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
               carrinho
             </span>
           </h1>
 
-          <p className="mt-4 text-zinc-400">
+          <p className="mt-4 text-muted">
             Confira seus produtos antes de finalizar a compra.
           </p>
         </div>
 
         {cart.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-24 text-center">
+          <div className="rounded-3xl border border-border bg-surface/60 px-6 py-24 text-center">
             <div className="text-6xl">🛒</div>
 
-            <h2 className="mt-6 text-2xl font-bold text-white">
+            <h2 className="mt-6 text-2xl font-bold text-text">
               Seu carrinho está vazio
             </h2>
 
-            <p className="mt-3 text-zinc-500">
+            <p className="mt-3 text-muted">
               Adicione produtos para começar sua compra.
             </p>
 
@@ -62,9 +55,9 @@ export function Cart() {
               {cart.map((item) => (
                 <div
                   key={item.id}
-                  className="flex flex-col gap-5 rounded-3xl border border-white/10 bg-zinc-900/60 p-5 sm:flex-row sm:items-center"
+                  className="flex flex-col gap-5 rounded-3xl border border-border bg-surface/60 p-5 sm:flex-row sm:items-center"
                 >
-                  <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-zinc-950">
+                  <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-background">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -73,7 +66,7 @@ export function Cart() {
                   </div>
 
                   <div className="flex-1">
-                    <h2 className="text-xl font-bold text-white">
+                    <h2 className="text-xl font-bold text-text">
                       {item.name}
                     </h2>
 
@@ -87,18 +80,18 @@ export function Cart() {
                     <div className="mt-5 flex items-center gap-3">
                       <button
                         onClick={() => decreaseQuantity(item.id)}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-zinc-950 text-white transition hover:border-violet-500"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-text transition hover:border-violet-500"
                       >
                         −
                       </button>
 
-                      <span className="min-w-8 text-center font-bold text-white">
+                      <span className="min-w-8 text-center font-bold text-text">
                         {item.quantity}
                       </span>
 
                       <button
                         onClick={() => increaseQuantity(item.id)}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-zinc-950 text-white transition hover:border-violet-500"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-text transition hover:border-violet-500"
                       >
                         +
                       </button>
@@ -107,7 +100,7 @@ export function Cart() {
 
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="text-sm text-zinc-500 transition hover:text-red-400"
+                    className="text-sm text-muted transition hover:text-red-400"
                   >
                     Remover
                   </button>
@@ -115,14 +108,14 @@ export function Cart() {
               ))}
             </div>
 
-            <aside className="h-fit rounded-3xl border border-white/10 bg-zinc-900/70 p-7">
-              <h2 className="text-xl font-bold text-white">
+            <aside className="h-fit rounded-3xl border border-border bg-surface/70 p-7">
+              <h2 className="text-xl font-bold text-text">
                 Resumo do pedido
               </h2>
 
-              <div className="my-6 h-px bg-white/10" />
+              <div className="my-6 h-px bg-border" />
 
-              <div className="flex justify-between text-zinc-400">
+              <div className="flex justify-between text-muted">
                 <span>Subtotal</span>
 
                 <span>
@@ -133,22 +126,18 @@ export function Cart() {
                 </span>
               </div>
 
-              <div className="mt-4 flex justify-between text-zinc-400">
+              <div className="mt-4 flex justify-between text-muted">
                 <span>Frete</span>
 
-                <span className="text-green-400">
-                  Grátis
-                </span>
+                <span className="text-green-400">Grátis</span>
               </div>
 
-              <div className="my-6 h-px bg-white/10" />
+              <div className="my-6 h-px bg-border" />
 
               <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-white">
-                  Total
-                </span>
+                <span className="text-lg font-bold text-text">Total</span>
 
-                <span className="text-2xl font-black text-white">
+                <span className="text-2xl font-black text-text">
                   {total.toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",

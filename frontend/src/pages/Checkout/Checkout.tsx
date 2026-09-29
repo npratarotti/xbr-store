@@ -80,9 +80,6 @@ export function Checkout() {
   }, [cep, subtotal, shippingConfig]);
 
   // ===== Effect do CUPOM =====
-  // Recalcula o desconto sempre que o subtotal muda.
-  // Se o cupom deixar de ser válido (ex.: subtotal caiu abaixo do mínimo),
-  // remove automaticamente e avisa.
   useEffect(() => {
     if (!appliedCoupon) return;
 
@@ -158,16 +155,16 @@ export function Checkout() {
 
   if (cart.length === 0) {
     return (
-      <main className="min-h-screen bg-[#09090B] py-20">
+      <main className="min-h-screen bg-background py-20 transition-colors duration-300">
         <Container>
-          <div className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-zinc-900/70 px-6 py-20 text-center">
+          <div className="mx-auto max-w-2xl rounded-3xl border border-border bg-surface/70 px-6 py-20 text-center">
             <div className="text-6xl">🛒</div>
 
-            <h1 className="mt-6 text-3xl font-black text-white">
+            <h1 className="mt-6 text-3xl font-black text-text">
               Seu carrinho está vazio
             </h1>
 
-            <p className="mt-3 text-zinc-500">
+            <p className="mt-3 text-muted">
               Adicione pelo menos um produto antes de finalizar a compra.
             </p>
 
@@ -260,7 +257,6 @@ export function Checkout() {
       createdAt: new Date().toISOString(),
     };
 
-    // Simula processamento (em produção: chamada à API de pagamento)
     await new Promise((resolve) => setTimeout(resolve, 900));
 
     const savedOrders = localStorage.getItem("xbr-orders");
@@ -280,18 +276,18 @@ export function Checkout() {
   };
 
   return (
-    <main className="min-h-screen bg-[#09090B] py-12 md:py-20">
+    <main className="min-h-screen bg-background py-12 transition-colors duration-300 md:py-20">
       <Container>
         <div className="mb-12">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">
             XBR Store
           </span>
 
-          <h1 className="mt-3 text-4xl font-black text-white md:text-5xl">
+          <h1 className="mt-3 text-4xl font-black text-text md:text-5xl">
             Finalizar compra
           </h1>
 
-          <p className="mt-4 text-zinc-400">
+          <p className="mt-4 text-muted">
             Preencha seus dados para finalizar seu pedido.
           </p>
         </div>
@@ -302,8 +298,8 @@ export function Checkout() {
         >
           <div className="space-y-6">
             {/* Dados pessoais */}
-            <section className="rounded-3xl border border-white/10 bg-zinc-900/70 p-7">
-              <h2 className="text-xl font-bold text-white">
+            <section className="rounded-3xl border border-border bg-surface/70 p-7">
+              <h2 className="text-xl font-bold text-text">
                 Dados pessoais
               </h2>
 
@@ -311,7 +307,7 @@ export function Checkout() {
                 <div>
                   <label
                     htmlFor="name"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     Nome completo *
                   </label>
@@ -323,14 +319,14 @@ export function Checkout() {
                     onChange={(event) => setName(event.target.value)}
                     placeholder="Seu nome completo"
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="email"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     E-mail *
                   </label>
@@ -342,14 +338,14 @@ export function Checkout() {
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="seu@email.com"
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="phone"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     Telefone *
                   </label>
@@ -361,15 +357,15 @@ export function Checkout() {
                     onChange={(event) => setPhone(event.target.value)}
                     placeholder="(19) 99999-9999"
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
               </div>
             </section>
 
             {/* Endereço */}
-            <section className="rounded-3xl border border-white/10 bg-zinc-900/70 p-7">
-              <h2 className="text-xl font-bold text-white">
+            <section className="rounded-3xl border border-border bg-surface/70 p-7">
+              <h2 className="text-xl font-bold text-text">
                 Endereço de entrega
               </h2>
 
@@ -377,7 +373,7 @@ export function Checkout() {
                 <div>
                   <label
                     htmlFor="cep"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     CEP *
                   </label>
@@ -390,14 +386,14 @@ export function Checkout() {
                     maxLength={9}
                     placeholder="00000-000"
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="number"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     Número *
                   </label>
@@ -409,14 +405,14 @@ export function Checkout() {
                     onChange={(event) => setNumber(event.target.value)}
                     placeholder="123"
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
 
                 <div className="md:col-span-2">
                   <label
                     htmlFor="address"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     Endereço *
                   </label>
@@ -428,14 +424,14 @@ export function Checkout() {
                     onChange={(event) => setAddress(event.target.value)}
                     placeholder="Rua, avenida..."
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
 
                 <div className="md:col-span-2">
                   <label
                     htmlFor="complement"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     Complemento
                   </label>
@@ -446,14 +442,14 @@ export function Checkout() {
                     value={complement}
                     onChange={(event) => setComplement(event.target.value)}
                     placeholder="Apartamento, bloco, referência..."
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="city"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     Cidade *
                   </label>
@@ -465,14 +461,14 @@ export function Checkout() {
                     onChange={(event) => setCity(event.target.value)}
                     placeholder="Sua cidade"
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="state"
-                    className="mb-2 block text-sm font-medium text-zinc-300"
+                    className="mb-2 block text-sm font-medium text-muted"
                   >
                     Estado *
                   </label>
@@ -485,20 +481,20 @@ export function Checkout() {
                     placeholder="SP"
                     maxLength={2}
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white uppercase outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+                    className="w-full rounded-2xl border border-border bg-background px-5 py-3.5 text-text uppercase outline-none transition placeholder:text-muted focus:border-violet-500"
                   />
                 </div>
               </div>
             </section>
 
             {/* Pagamento */}
-            <section className="rounded-3xl border border-white/10 bg-zinc-900/70 p-7">
-              <h2 className="text-xl font-bold text-white">
+            <section className="rounded-3xl border border-border bg-surface/70 p-7">
+              <h2 className="text-xl font-bold text-text">
                 Forma de pagamento
               </h2>
 
               <div className="mt-6 space-y-3">
-                <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-white/10 bg-zinc-950 p-4 transition hover:border-violet-500/50">
+                <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-border bg-background p-4 transition hover:border-violet-500/50">
                   <input
                     type="radio"
                     name="payment"
@@ -509,15 +505,15 @@ export function Checkout() {
                   />
 
                   <div>
-                    <p className="font-semibold text-white">PIX</p>
+                    <p className="font-semibold text-text">PIX</p>
 
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-muted">
                       Pagamento instantâneo
                     </p>
                   </div>
                 </label>
 
-                <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-white/10 bg-zinc-950 p-4 transition hover:border-violet-500/50">
+                <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-border bg-background p-4 transition hover:border-violet-500/50">
                   <input
                     type="radio"
                     name="payment"
@@ -528,17 +524,16 @@ export function Checkout() {
                   />
 
                   <div>
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-text">
                       Cartão de crédito
                     </p>
 
-                    <p className="text-sm text-zinc-500">Até 12x</p>
+                    <p className="text-sm text-muted">Até 12x</p>
                   </div>
                 </label>
               </div>
             </section>
 
-            {/* Erro */}
             {error && (
               <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-400">
                 {error}
@@ -547,8 +542,8 @@ export function Checkout() {
           </div>
 
           {/* Resumo */}
-          <aside className="h-fit rounded-3xl border border-white/10 bg-zinc-900/70 p-7 lg:sticky lg:top-28">
-            <h2 className="text-xl font-bold text-white">
+          <aside className="h-fit rounded-3xl border border-border bg-surface/70 p-7 lg:sticky lg:top-28">
+            <h2 className="text-xl font-bold text-text">
               Resumo do pedido
             </h2>
 
@@ -559,16 +554,16 @@ export function Checkout() {
                   className="flex items-center justify-between gap-4"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-white">
+                    <p className="truncate text-sm font-medium text-text">
                       {item.name}
                     </p>
 
-                    <p className="mt-1 text-xs text-zinc-500">
+                    <p className="mt-1 text-xs text-muted">
                       Quantidade: {item.quantity}
                     </p>
                   </div>
 
-                  <span className="whitespace-nowrap text-sm font-semibold text-zinc-300">
+                  <span className="whitespace-nowrap text-sm font-semibold text-muted">
                     {(item.price * item.quantity).toLocaleString(
                       "pt-BR",
                       {
@@ -581,18 +576,18 @@ export function Checkout() {
               ))}
             </div>
 
-            <div className="my-6 h-px bg-white/10" />
+            <div className="my-6 h-px bg-border" />
 
             {/* CUPOM */}
             <div className="mb-4">
               {appliedCoupon ? (
                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-3">
                   <div className="min-w-0">
-                    <p className="text-xs uppercase tracking-wider text-green-400">
+                    <p className="text-xs uppercase tracking-wider text-green-500">
                       Cupom aplicado
                     </p>
 
-                    <p className="mt-1 truncate font-bold text-white">
+                    <p className="mt-1 truncate font-bold text-text">
                       {appliedCoupon.code}
                     </p>
                   </div>
@@ -600,7 +595,7 @@ export function Checkout() {
                   <button
                     type="button"
                     onClick={handleRemoveCoupon}
-                    className="rounded-xl border border-white/10 bg-zinc-950 px-3 py-1.5 text-xs font-semibold text-zinc-400 transition hover:border-red-500/40 hover:text-red-400"
+                    className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-red-500/40 hover:text-red-400"
                   >
                     Remover
                   </button>
@@ -617,13 +612,13 @@ export function Checkout() {
                         )
                       }
                       placeholder="Cupom de desconto"
-                      className="flex-1 rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm text-white uppercase outline-none placeholder:text-zinc-600 focus:border-violet-500"
+                      className="flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-text uppercase outline-none placeholder:text-muted focus:border-violet-500"
                     />
 
                     <button
                       type="button"
                       onClick={handleApplyCoupon}
-                      className="rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:border-violet-500"
+                      className="rounded-2xl border border-border bg-background px-4 py-3 text-sm font-semibold text-text transition hover:border-violet-500"
                     >
                       Aplicar
                     </button>
@@ -638,7 +633,7 @@ export function Checkout() {
               )}
             </div>
 
-            <div className="flex justify-between text-zinc-400">
+            <div className="flex justify-between text-muted">
               <span>Subtotal</span>
 
               <span>
@@ -649,22 +644,22 @@ export function Checkout() {
               </span>
             </div>
 
-            <div className="mt-4 flex justify-between text-zinc-400">
+            <div className="mt-4 flex justify-between text-muted">
               <span>
                 Frete
                 {shippingResult && shippingResult.days > 0 && (
-                  <span className="ml-2 text-xs text-zinc-600">
+                  <span className="ml-2 text-xs text-muted/70">
                     ({shippingResult.days} {shippingResult.days === 1 ? "dia" : "dias"})
                   </span>
                 )}
               </span>
 
               {!cep.trim() ? (
-                <span className="text-zinc-500">—</span>
+                <span className="text-muted/70">—</span>
               ) : !shippingResult ? (
-                <span className="text-zinc-500">CEP inválido</span>
+                <span className="text-muted/70">CEP inválido</span>
               ) : shippingResult.price === 0 ? (
-                <span className="text-green-400">Grátis</span>
+                <span className="text-green-500">Grátis</span>
               ) : (
                 <span>
                   {shippingResult.price.toLocaleString("pt-BR", {
@@ -676,7 +671,7 @@ export function Checkout() {
             </div>
 
             {appliedCoupon && (
-              <div className="mt-4 flex justify-between text-green-400">
+              <div className="mt-4 flex justify-between text-green-500">
                 <span>Desconto ({appliedCoupon.code})</span>
 
                 <span>
@@ -689,12 +684,12 @@ export function Checkout() {
               </div>
             )}
 
-            <div className="my-6 h-px bg-white/10" />
+            <div className="my-6 h-px bg-border" />
 
             <div className="flex items-center justify-between">
-              <span className="text-lg font-bold text-white">Total</span>
+              <span className="text-lg font-bold text-text">Total</span>
 
-              <span className="text-2xl font-black text-white">
+              <span className="text-2xl font-black text-text">
                 {finalTotal.toLocaleString("pt-BR", {
                   style: "currency",
                   currency: "BRL",
@@ -716,7 +711,7 @@ export function Checkout() {
                 : "Confirmar pedido"}
             </button>
 
-            <p className="mt-4 text-center text-xs leading-5 text-zinc-600">
+            <p className="mt-4 text-center text-xs leading-5 text-muted/70">
               Ao confirmar, seu pedido será registrado na XBR Store.
             </p>
           </aside>

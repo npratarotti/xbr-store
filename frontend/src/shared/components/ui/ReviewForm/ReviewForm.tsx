@@ -87,21 +87,21 @@ export function ReviewForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6"
+      className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6"
     >
       <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
 
-      <h3 className="relative text-lg font-bold text-white">
+      <h3 className="relative text-lg font-bold text-text">
         {initialReview ? "Editar sua avaliação" : "Avaliar este produto"}
       </h3>
 
-      <p className="relative mt-1 text-sm text-zinc-500">
+      <p className="relative mt-1 text-sm text-muted">
         Conte o que você achou do produto.
       </p>
 
       <div className="relative mt-5 space-y-5">
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-300">
+          <label className="mb-2 block text-sm font-medium text-text/80">
             Sua nota *
           </label>
 
@@ -111,7 +111,7 @@ export function ReviewForm({
         <div>
           <label
             htmlFor="review-comment"
-            className="mb-2 block text-sm font-medium text-zinc-300"
+            className="mb-2 block text-sm font-medium text-text/80"
           >
             Comentário *
           </label>
@@ -122,17 +122,17 @@ export function ReviewForm({
             onChange={(event) => setComment(event.target.value)}
             rows={4}
             placeholder="O que você achou do produto?"
-            className="w-full resize-none rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3.5 text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+            className="w-full resize-none rounded-2xl border border-border bg-background px-5 py-3.5 text-text outline-none transition placeholder:text-muted focus:border-violet-500"
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-300">
+          <label className="mb-2 block text-sm font-medium text-text/80">
             Foto (opcional)
           </label>
 
           {photo ? (
-            <div className="relative overflow-hidden rounded-2xl border border-white/10">
+            <div className="relative overflow-hidden rounded-2xl border border-border">
               <img
                 src={photo}
                 alt="Prévia"
@@ -148,7 +148,7 @@ export function ReviewForm({
               </button>
             </div>
           ) : (
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-zinc-950 px-5 py-8 text-sm text-zinc-400 transition hover:border-violet-500/50 hover:text-violet-300">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-background px-5 py-8 text-sm text-muted transition hover:border-violet-500/50 hover:text-violet-400">
               <span>📷</span>
               <span>Escolher imagem</span>
 
@@ -182,7 +182,7 @@ export function ReviewForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-2xl border border-white/10 bg-zinc-950 px-6 py-3 font-semibold text-zinc-300 transition hover:border-white/20 hover:text-white"
+            className="rounded-2xl border border-border bg-background px-6 py-3 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text"
           >
             Cancelar
           </button>

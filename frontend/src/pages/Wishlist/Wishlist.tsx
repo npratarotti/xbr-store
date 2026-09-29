@@ -13,34 +13,34 @@ export function Wishlist() {
   );
 
   return (
-    <main className="min-h-screen bg-[#09090B] py-20">
+    <main className="min-h-screen bg-background py-20 transition-colors duration-300">
       <Container>
         <div className="mb-12">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">
             XBR Store
           </span>
 
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-text md:text-5xl">
             Meus{" "}
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
               favoritos
             </span>
           </h1>
 
-          <p className="mt-4 max-w-2xl text-zinc-400">
+          <p className="mt-4 max-w-2xl text-muted">
             Os produtos que você salvou para comprar depois.
           </p>
         </div>
 
         {favoriteProducts.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-24 text-center">
+          <div className="rounded-3xl border border-border bg-surface/60 px-6 py-24 text-center">
             <div className="text-6xl">💜</div>
 
-            <h2 className="mt-6 text-2xl font-bold text-white">
+            <h2 className="mt-6 text-2xl font-bold text-text">
               Sua lista de favoritos está vazia
             </h2>
 
-            <p className="mt-3 text-zinc-500">
+            <p className="mt-3 text-muted">
               Toque no coração de qualquer produto para salvá-lo aqui.
             </p>
 
@@ -56,8 +56,8 @@ export function Wishlist() {
             <div className="mb-6 flex items-center gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
 
-              <p className="text-sm text-zinc-400">
-                <span className="font-bold text-white">
+              <p className="text-sm text-muted">
+                <span className="font-bold text-text">
                   {favoriteProducts.length}
                 </span>{" "}
                 {favoriteProducts.length === 1

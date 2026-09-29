@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Toast } from "../Toast";
 import { useCart } from "../../../../app/providers/CartProvider";
 import { useWishlist } from "../../../../app/providers/WishlistProvider";
+import { useReviews, getAverageRating } from "../../../../shared/hooks/useReviews";
 
 type ProductCardProps = {
   id: number;
@@ -29,6 +30,10 @@ export function ProductCard({
 }: ProductCardProps) {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+
+  // Reatividade às reviews — quando alguém avalia, o card atualiza
+  useReviews();
+  const { count: reviewsCount } = getAverageRating(id);
 
   const [showToast, setShowToast] = useState(false);
   const [showWishToast, setShowWishToast] = useState(false);
@@ -82,8 +87,8 @@ export function ProductCard({
           overflow-hidden
           rounded-3xl
           border
-          border-white/10
-          bg-zinc-900/70
+          border-border
+          bg-surface/70
           p-5
           backdrop-blur-xl
           transition-all
@@ -124,7 +129,7 @@ export function ProductCard({
           className={`absolute right-5 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 ${
             isFavorited
               ? "border-fuchsia-500/50 bg-fuchsia-500/20 text-fuchsia-400 hover:bg-fuchsia-500/30"
-              : "border-white/10 bg-zinc-950/60 text-zinc-400 hover:border-fuchsia-500/50 hover:text-fuchsia-400"
+              : "border-border bg-background/60 text-muted hover:border-fuchsia-500/50 hover:text-fuchsia-400"
           }`}
         >
           <svg
@@ -142,7 +147,7 @@ export function ProductCard({
         </button>
 
         <Link to={`/product/${id}`} className="block">
-          <div className="relative mb-6 flex h-64 items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br from-zinc-950 to-zinc-900">
+          <div className="relative mb-6 flex h-64 items-center justify-center overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-background to-surface">
             <div className="pointer-events-none absolute h-32 w-32 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/20" />
 
             <img
@@ -169,23 +174,30 @@ export function ProductCard({
 
         <Link
           to={`/product/${id}`}
-          className="mt-2 block min-h-[56px] text-xl font-bold leading-7 text-white transition-colors duration-300 hover:text-violet-200"
+          className="mt-2 block min-h-[56px] text-xl font-bold leading-7 text-text transition-colors duration-300 hover:text-violet-200"
         >
           {name}
         </Link>
 
+        {/* 🆕 Rating com contador de avaliações */}
         <div className="mt-3 flex items-center gap-2">
           <span className="text-sm tracking-wide text-yellow-400">
             {"★".repeat(Math.floor(rating))}
           </span>
 
-          <span className="text-sm font-medium text-zinc-500">
+          <span className="text-sm font-medium text-muted">
             {rating.toFixed(1)}
           </span>
+
+          {reviewsCount > 0 && (
+            <span className="text-xs font-medium text-muted">
+              ({reviewsCount})
+            </span>
+          )}
         </div>
 
         <div className="mt-5">
-          <p className="text-3xl font-black tracking-tight text-white">
+          <p className="text-3xl font-black tracking-tight text-text">
             {price.toLocaleString("pt-BR", {
               style: "currency",
               currency: "BRL",
@@ -193,7 +205,7 @@ export function ProductCard({
           </p>
 
           {installment && (
-            <p className="mt-1 text-sm text-zinc-500">{installment}</p>
+            <p className="mt-1 text-sm text-muted">{installment}</p>
           )}
         </div>
 

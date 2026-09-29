@@ -43,7 +43,7 @@ export function Admin() {
   );
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#09090B] py-12 md:py-20">
+    <main className="relative min-h-screen overflow-hidden bg-background py-12 transition-colors duration-300 md:py-20">
 
       {/* Glows de fundo */}
       <div className="pointer-events-none absolute inset-0">
@@ -53,59 +53,57 @@ export function Admin() {
       </div>
 
       <Container>
-        {/* Cabeçalho */}
         <div className="relative mb-12">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">
             XBR Store
           </span>
 
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-text md:text-5xl">
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
               Dashboard
             </span>
           </h1>
 
-          <p className="mt-4 text-zinc-400">
+          <p className="mt-4 text-muted">
             Visão geral da sua loja.
           </p>
         </div>
 
-        {/* MÉTRICAS */}
         <div className="relative grid gap-5 md:grid-cols-3">
           {/* Pedidos */}
-          <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-[0_20px_60px_rgba(124,58,237,0.20)]">
+          <div className="group relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-[0_20px_60px_rgba(124,58,237,0.20)]">
             <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
 
             <div className="relative flex items-center justify-between">
-              <p className="text-sm text-zinc-500">Pedidos</p>
+              <p className="text-sm text-muted">Pedidos</p>
               <span className="text-2xl">📦</span>
             </div>
 
-            <p className="relative mt-3 text-4xl font-black text-white">
+            <p className="relative mt-3 text-4xl font-black text-text">
               {orders.length}
             </p>
           </div>
 
           {/* Produtos */}
-          <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-[0_20px_60px_rgba(124,58,237,0.20)]">
+          <div className="group relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-[0_20px_60px_rgba(124,58,237,0.20)]">
             <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
 
             <div className="relative flex items-center justify-between">
-              <p className="text-sm text-zinc-500">Produtos cadastrados</p>
+              <p className="text-sm text-muted">Produtos cadastrados</p>
               <span className="text-2xl">🛍️</span>
             </div>
 
-            <p className="relative mt-3 text-4xl font-black text-white">
+            <p className="relative mt-3 text-4xl font-black text-text">
               {products.length}
             </p>
           </div>
 
           {/* Vendas */}
-          <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-[0_20px_60px_rgba(124,58,237,0.20)]">
+          <div className="group relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-[0_20px_60px_rgba(124,58,237,0.20)]">
             <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
 
             <div className="relative flex items-center justify-between">
-              <p className="text-sm text-zinc-500">Vendas</p>
+              <p className="text-sm text-muted">Vendas</p>
               <span className="text-2xl">💰</span>
             </div>
 
@@ -118,10 +116,8 @@ export function Admin() {
           </div>
         </div>
 
-        {/* Separador visual */}
         <div className="relative my-14 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
 
-        {/* MANAGERS */}
         <div className="relative space-y-10">
           <OrderManager />
           <CouponManager />

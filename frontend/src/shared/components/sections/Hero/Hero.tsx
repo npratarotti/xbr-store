@@ -4,7 +4,7 @@ import { Container } from "../../layout/Container";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[#09090B]">
+    <section className="relative overflow-hidden bg-background transition-colors duration-300">
       {/* Luzes do fundo */}
       <div className="absolute inset-0">
         <div className="absolute left-1/2 top-20 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-violet-700/25 blur-[160px]" />
@@ -20,7 +20,7 @@ export function Hero() {
               🚀 Bem-vindo à XBR Store
             </span>
 
-            <h1 className="mt-6 text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl">
+            <h1 className="mt-6 text-3xl font-black leading-tight tracking-tight text-text sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl">
               Tecnologia que
               <br />
               <span className="whitespace-nowrap bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 bg-clip-text text-2xl text-transparent sm:text-3xl md:text-4xl lg:text-3xl xl:text-4xl">
@@ -28,7 +28,7 @@ export function Hero() {
               </span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-7 text-zinc-400 lg:text-lg lg:leading-8">
+            <p className="mt-6 max-w-xl text-base leading-7 text-muted lg:text-lg lg:leading-8">
               Produtos premium para quem busca desempenho,
               inovação e uma experiência de compra diferenciada.
             </p>
@@ -42,7 +42,7 @@ export function Hero() {
 
               <Link
                 to="/products?filter=ofertas"
-                className="rounded-xl border border-zinc-700 px-6 py-3 font-semibold text-white transition hover:border-violet-500"
+                className="rounded-xl border border-border px-6 py-3 font-semibold text-text transition hover:border-violet-500"
               >
                 Ver ofertas
               </Link>

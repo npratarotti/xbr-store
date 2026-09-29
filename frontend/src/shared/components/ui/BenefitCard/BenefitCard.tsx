@@ -20,10 +20,10 @@ export function BenefitCard({
         overflow-hidden
         rounded-3xl
         border
-        border-white/10
+        border-border
         bg-gradient-to-b
-        from-zinc-900
-        to-zinc-950
+        from-surface
+        to-background
         p-8
         text-center
         transition-all
@@ -63,7 +63,7 @@ export function BenefitCard({
           overflow-hidden
           rounded-2xl
           border
-          border-white/10
+          border-border
           bg-white/[0.04]
           shadow-inner
           transition-all
@@ -97,7 +97,7 @@ export function BenefitCard({
           relative
           text-xl
           font-bold
-          text-white
+          text-text
           transition-colors
           duration-300
           group-hover:text-violet-300
@@ -107,7 +107,7 @@ export function BenefitCard({
       </h3>
 
       {/* Descrição */}
-      <p className="relative mt-3 text-sm leading-6 text-zinc-400">
+      <p className="relative mt-3 text-sm leading-6 text-muted">
         {description}
       </p>
 

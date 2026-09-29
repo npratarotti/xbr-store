@@ -32,7 +32,6 @@ function formatCurrency(value: number) {
 export function ShippingManager() {
   const config = useShipping();
 
-  // Config geral
   const [freeThreshold, setFreeThreshold] = useState(
     config.freeShippingThreshold.toString()
   );
@@ -43,7 +42,6 @@ export function ShippingManager() {
     config.fallbackDays.toString()
   );
 
-  // Form de nova faixa
   const [label, setLabel] = useState("");
   const [cepStart, setCepStart] = useState("");
   const [cepEnd, setCepEnd] = useState("");
@@ -63,7 +61,6 @@ export function ShippingManager() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // Sincroniza os campos gerais quando o config muda
   useEffect(() => {
     setFreeThreshold(config.freeShippingThreshold.toString());
     setFallbackPrice(config.fallbackPrice.toString());
@@ -229,10 +226,10 @@ export function ShippingManager() {
   };
 
   const inputClass = (hasError: boolean) =>
-    `w-full rounded-2xl border bg-zinc-950 px-5 py-3.5 text-white outline-none placeholder:text-zinc-600 transition ${
+    `w-full rounded-2xl border bg-background px-5 py-3.5 text-text outline-none placeholder:text-muted transition ${
       hasError
         ? "border-red-500/60 focus:border-red-500"
-        : "border-white/10 focus:border-violet-500"
+        : "border-border focus:border-violet-500"
     }`;
 
   return (
@@ -243,20 +240,19 @@ export function ShippingManager() {
             Logística
           </span>
 
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-text">
             Frete e{" "}
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
               entrega
             </span>
           </h2>
 
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-muted">
             Configure faixas de CEP e regras de frete grátis.
           </p>
         </div>
 
-        {/* CONFIG GERAL */}
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6">
           <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
 
           <h3 className="relative text-sm font-bold uppercase tracking-wider text-violet-400">
@@ -265,7 +261,7 @@ export function ShippingManager() {
 
           <div className="relative mt-5 grid gap-5 md:grid-cols-3">
             <div>
-              <label className="mb-2 block text-xs font-medium text-zinc-400">
+              <label className="mb-2 block text-xs font-medium text-muted">
                 Frete grátis a partir de (R$)
               </label>
 
@@ -278,13 +274,13 @@ export function ShippingManager() {
                 className={inputClass(false)}
               />
 
-              <p className="mt-2 text-xs text-zinc-600">
+              <p className="mt-2 text-xs text-muted/70">
                 0 = desativa frete grátis.
               </p>
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-medium text-zinc-400">
+              <label className="mb-2 block text-xs font-medium text-muted">
                 Frete padrão (fora das faixas)
               </label>
 
@@ -299,7 +295,7 @@ export function ShippingManager() {
             </div>
 
             <div>
-              <label className="mb-2 block text-xs font-medium text-zinc-400">
+              <label className="mb-2 block text-xs font-medium text-muted">
                 Prazo do frete padrão (dias)
               </label>
 
@@ -322,11 +318,10 @@ export function ShippingManager() {
           </button>
         </div>
 
-        {/* FORM DE FAIXA */}
         <form
           onSubmit={handleSubmitZone}
           noValidate
-          className="relative mt-8 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6"
+          className="relative mt-8 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6"
         >
           <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
 
@@ -426,7 +421,7 @@ export function ShippingManager() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-2xl border border-white/10 bg-zinc-950 px-7 py-3.5 font-semibold text-zinc-300 transition hover:border-white/20 hover:text-white"
+                className="rounded-2xl border border-border bg-background px-7 py-3.5 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text"
               >
                 Cancelar
               </button>
@@ -434,12 +429,11 @@ export function ShippingManager() {
           </div>
         </form>
 
-        {/* LISTA */}
         <div className="mt-8">
           <div className="mb-4 flex items-center gap-2">
             <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
-            <p className="text-sm text-zinc-400">
-              <span className="font-bold text-white">
+            <p className="text-sm text-muted">
+              <span className="font-bold text-text">
                 {config.zones.length}
               </span>{" "}
               faixa{config.zones.length !== 1 ? "s" : ""} de CEP cadastrada
@@ -448,14 +442,14 @@ export function ShippingManager() {
           </div>
 
           {config.zones.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-16 text-center">
+            <div className="rounded-3xl border border-border bg-surface/60 px-6 py-16 text-center">
               <div className="text-5xl">🚚</div>
 
-              <p className="mt-4 font-semibold text-white">
+              <p className="mt-4 font-semibold text-text">
                 Nenhuma faixa cadastrada
               </p>
 
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className="mt-2 text-sm text-muted">
                 Os CEPs que não caírem em nenhuma faixa pagam o frete padrão.
               </p>
             </div>
@@ -466,16 +460,16 @@ export function ShippingManager() {
                 .map((zone) => (
                   <article
                     key={zone.id}
-                    className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
+                    className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
                   >
                     <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
 
                     <div className="relative min-w-0 flex-1">
-                      <h3 className="text-lg font-black text-white">
+                      <h3 className="text-lg font-black text-text">
                         {zone.label}
                       </h3>
 
-                      <p className="mt-1 text-sm text-zinc-400">
+                      <p className="mt-1 text-sm text-muted">
                         CEP {zone.cepStart.toString().padStart(8, "0")} –{" "}
                         {zone.cepEnd.toString().padStart(8, "0")}
                       </p>
@@ -484,7 +478,7 @@ export function ShippingManager() {
                         <span className="font-semibold text-violet-400">
                           {formatCurrency(zone.price)}
                         </span>{" "}
-                        <span className="text-zinc-500">
+                        <span className="text-muted">
                           · {zone.days} dia(s) úteis
                         </span>
                       </p>
