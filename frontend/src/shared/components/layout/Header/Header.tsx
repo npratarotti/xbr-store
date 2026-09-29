@@ -1,22 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { Container } from "../Container";
 
 import { useCart } from "../../../../app/providers/CartProvider";
 import { useAuth } from "../../../../app/providers/AuthProvider";
+import { useProducts } from "../../../hooks/useProducts";
 
 export function Header() {
   const { cartQuantity } = useCart();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const products = useProducts();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Busca desktop
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Busca mobile
+  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
+  const [showMobileSuggestions, setShowMobileSuggestions] = useState(false);
 
   // Fecha o menu sempre que a rota muda
   useEffect(() => {
     setIsMenuOpen(false);
+    setShowSuggestions(false);
+    setShowMobileSuggestions(false);
+    setSearchQuery("");
+    setMobileSearchQuery("");
   }, [location.pathname]);
 
   // Bloqueia o scroll do body quando o menu está aberto
@@ -27,6 +42,35 @@ export function Header() {
     };
   }, [isMenuOpen]);
 
+  // Fecha sugestões ao clicar fora (desktop)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fecha sugestões com Esc
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowSuggestions(false);
+        setShowMobileSuggestions(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, []);
+
   const handleLogout = () => {
     logout();
     setIsMenuOpen(false);
@@ -34,6 +78,62 @@ export function Header() {
   };
 
   const closeMenu = () => setIsMenuOpen(false);
+
+  // Sugestões de busca (mesma lógica para desktop e mobile)
+  const getSuggestions = (query: string) => {
+    const q = query.toLowerCase().trim();
+
+    if (q.length < 2) return [];
+
+    return products
+      .filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q)
+      )
+      .slice(0, 5);
+  };
+
+  const desktopSuggestions = useMemo(
+    () => getSuggestions(searchQuery),
+    [searchQuery, products]
+  );
+
+  const mobileSuggestions = useMemo(
+    () => getSuggestions(mobileSearchQuery),
+    [mobileSearchQuery, products]
+  );
+
+  const goToProduct = (id: number) => {
+    setShowSuggestions(false);
+    setShowMobileSuggestions(false);
+    setSearchQuery("");
+    setMobileSearchQuery("");
+    closeMenu();
+    navigate(`/product/${id}`);
+  };
+
+  const goToAllResults = (query: string) => {
+    const q = query.trim();
+    if (!q) return;
+
+    setShowSuggestions(false);
+    setShowMobileSuggestions(false);
+    setSearchQuery("");
+    setMobileSearchQuery("");
+    closeMenu();
+    navigate(`/products?search=${encodeURIComponent(q)}`);
+  };
+
+  const handleDesktopSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    goToAllResults(searchQuery);
+  };
+
+  const handleMobileSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    goToAllResults(mobileSearchQuery);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
@@ -49,25 +149,78 @@ export function Header() {
           </Link>
 
           {/* Busca (desktop) */}
-          <div className="hidden flex-1 max-w-xl md:block">
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                const form = event.currentTarget;
-                const input = form.elements.namedItem("search") as HTMLInputElement;
-                const search = input.value.trim();
-                if (search) {
-                  navigate(`/products?search=${encodeURIComponent(search)}`);
-                }
-              }}
-            >
+          <div
+            ref={searchContainerRef}
+            className="relative hidden flex-1 max-w-xl md:block"
+          >
+            <form onSubmit={handleDesktopSubmit}>
               <input
-                name="search"
                 type="text"
+                value={searchQuery}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (searchQuery.trim().length >= 2) {
+                    setShowSuggestions(true);
+                  }
+                }}
                 placeholder="Buscar produtos..."
                 className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
               />
             </form>
+
+            {/* Dropdown de sugestões (desktop) */}
+            {showSuggestions && desktopSuggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/50">
+                <ul className="divide-y divide-white/5">
+                  {desktopSuggestions.map((product) => (
+                    <li key={product.id}>
+                      <button
+                        type="button"
+                        onClick={() => goToProduct(product.id)}
+                        className="flex w-full items-center gap-4 px-4 py-3 text-left transition hover:bg-violet-500/10"
+                      >
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-zinc-900">
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="h-full w-full object-contain p-1"
+                          />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-white">
+                            {product.name}
+                          </p>
+
+                          <p className="mt-0.5 truncate text-xs text-zinc-500">
+                            {product.category}
+                          </p>
+                        </div>
+
+                        <span className="shrink-0 text-sm font-bold text-violet-400">
+                          {product.price.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  type="button"
+                  onClick={() => goToAllResults(searchQuery)}
+                  className="flex w-full items-center justify-center gap-2 border-t border-white/10 bg-zinc-900/50 px-4 py-3 text-sm font-semibold text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300"
+                >
+                  Ver todos os resultados para "{searchQuery}"
+                  <span>→</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Navegação desktop */}
@@ -91,6 +244,13 @@ export function Header() {
               className="text-sm font-medium text-zinc-300 transition hover:text-white"
             >
               Sobre
+            </Link>
+
+            <Link
+              to="/wishlist"
+              className="relative text-sm font-medium text-zinc-300 transition hover:text-white"
+            >
+              Favoritos
             </Link>
 
             {user ? (
@@ -162,7 +322,6 @@ export function Header() {
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-200 transition hover:border-violet-500 hover:text-violet-400"
             >
               {isMenuOpen ? (
-                // Ícone X (fechar)
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -178,7 +337,6 @@ export function Header() {
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               ) : (
-                // Ícone hamburguer
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -201,7 +359,6 @@ export function Header() {
       </Container>
 
       {/* ===== MENU MOBILE ===== */}
-      {/* Backdrop */}
       <div
         onClick={closeMenu}
         className={`
@@ -211,7 +368,6 @@ export function Header() {
         `}
       />
 
-      {/* Painel do menu */}
       <aside
         className={`
           fixed right-0 top-20 z-50 h-[calc(100vh-5rem)] w-[80%] max-w-sm
@@ -220,27 +376,70 @@ export function Header() {
           ${isMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        {/* Busca mobile */}
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            const form = event.currentTarget;
-            const input = form.elements.namedItem("search") as HTMLInputElement;
-            const search = input.value.trim();
-            if (search) {
-              navigate(`/products?search=${encodeURIComponent(search)}`);
-              closeMenu();
-            }
-          }}
-          className="mb-6"
-        >
-          <input
-            name="search"
-            type="text"
-            placeholder="Buscar produtos..."
-            className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
-          />
-        </form>
+        {/* Busca mobile com autocomplete */}
+        <div className="relative mb-6">
+          <form onSubmit={handleMobileSubmit}>
+            <input
+              type="text"
+              value={mobileSearchQuery}
+              onChange={(event) => {
+                setMobileSearchQuery(event.target.value);
+                setShowMobileSuggestions(true);
+              }}
+              onFocus={() => {
+                if (mobileSearchQuery.trim().length >= 2) {
+                  setShowMobileSuggestions(true);
+                }
+              }}
+              placeholder="Buscar produtos..."
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-violet-500"
+            />
+          </form>
+
+          {/* Dropdown de sugestões (mobile) */}
+          {showMobileSuggestions && mobileSuggestions.length > 0 && (
+            <div className="mt-2 overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl">
+              <ul className="divide-y divide-white/5">
+                {mobileSuggestions.map((product) => (
+                  <li key={product.id}>
+                    <button
+                      type="button"
+                      onClick={() => goToProduct(product.id)}
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-violet-500/10"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-zinc-950">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="h-full w-full object-contain p-1"
+                        />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-semibold text-white">
+                          {product.name}
+                        </p>
+
+                        <p className="mt-0.5 truncate text-[10px] text-zinc-500">
+                          {product.category}
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                type="button"
+                onClick={() => goToAllResults(mobileSearchQuery)}
+                className="flex w-full items-center justify-center gap-2 border-t border-white/10 bg-zinc-950/50 px-3 py-2.5 text-xs font-semibold text-violet-400 transition hover:bg-violet-500/10"
+              >
+                Ver todos os resultados
+                <span>→</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Links de navegação */}
         <nav className="flex flex-col gap-1">
@@ -266,6 +465,14 @@ export function Header() {
             className="rounded-xl px-4 py-3 text-base font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
           >
             Sobre
+          </Link>
+
+          <Link
+            to="/wishlist"
+            onClick={closeMenu}
+            className="rounded-xl px-4 py-3 text-base font-medium text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
+          >
+            Favoritos
           </Link>
 
           {user && (

@@ -11,9 +11,11 @@ import { Checkout } from "../../pages/Checkout/Checkout";
 import { OrderSuccess } from "../../pages/OrderSuccess/OrderSuccess";
 import { Profile } from "../../pages/Profile/Profile";
 import { About } from "../../pages/About/About";
+import { Wishlist } from "../../pages/Wishlist/Wishlist";
 
 import { CartProvider } from "../providers/CartProvider";
 import { AuthProvider } from "../providers/AuthProvider";
+import { WishlistProvider } from "../providers/WishlistProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { Admin } from "../../pages/Admin/Admin";
 import { AdminRoute } from "./AdminRoute";
@@ -23,6 +25,7 @@ export function AppRoutes() {
   return (
     <AuthProvider>
       <CartProvider>
+      <WishlistProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -32,6 +35,8 @@ export function AppRoutes() {
             <Route path="/product/:id" element={<Product />} />
 
             <Route path="/cart" element={<Cart />} />
+
+            <Route path="/wishlist" element={<Wishlist />} />   {/* ← essa linha */}
 
             <Route path="/login" element={<Login />} />
 
@@ -55,6 +60,7 @@ export function AppRoutes() {
           </Routes>
         </BrowserRouter>
         <DemoBanner />
+        </WishlistProvider>
       </CartProvider>
     </AuthProvider>
   );

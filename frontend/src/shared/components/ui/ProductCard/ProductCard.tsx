@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Toast } from "../Toast";
 import { useCart } from "../../../../app/providers/CartProvider";
+import { useWishlist } from "../../../../app/providers/WishlistProvider";
 
 type ProductCardProps = {
   id: number;
@@ -27,11 +28,14 @@ export function ProductCard({
   stock,
 }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const [showToast, setShowToast] = useState(false);
+  const [showWishToast, setShowWishToast] = useState(false);
 
   const isOutOfStock = stock === 0;
   const isLowStock = typeof stock === "number" && stock > 0 && stock <= 5;
+  const isFavorited = isInWishlist(id);
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
@@ -45,10 +49,30 @@ export function ProductCard({
     }, 2500);
   };
 
+  const handleToggleWishlist = () => {
+    toggleWishlist(id);
+
+    setShowWishToast(true);
+
+    setTimeout(() => {
+      setShowWishToast(false);
+    }, 2000);
+  };
+
   return (
     <>
       {showToast && (
         <Toast message={`${name} foi adicionado ao carrinho`} />
+      )}
+
+      {showWishToast && (
+        <Toast
+          message={
+            isFavorited
+              ? `${name} foi adicionado aos favoritos`
+              : `${name} foi removido dos favoritos`
+          }
+        />
       )}
 
       <article
@@ -71,7 +95,7 @@ export function ProductCard({
       >
         <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition duration-500 group-hover:bg-violet-600/20" />
 
-        {/* Badges do topo */}
+        {/* Badges do topo (esquerda) */}
         <div className="absolute left-5 top-5 z-10 flex flex-col items-start gap-2">
           {isOutOfStock ? (
             <span className="rounded-full border border-red-500/30 bg-red-600/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-red-900/30">
@@ -89,6 +113,33 @@ export function ProductCard({
             )
           )}
         </div>
+
+        {/* Botão de favorito (direita) */}
+        <button
+          type="button"
+          onClick={handleToggleWishlist}
+          aria-label={
+            isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"
+          }
+          className={`absolute right-5 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 ${
+            isFavorited
+              ? "border-fuchsia-500/50 bg-fuchsia-500/20 text-fuchsia-400 hover:bg-fuchsia-500/30"
+              : "border-white/10 bg-zinc-950/60 text-zinc-400 hover:border-fuchsia-500/50 hover:text-fuchsia-400"
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill={isFavorited ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-5 w-5"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
 
         <Link to={`/product/${id}`} className="block">
           <div className="relative mb-6 flex h-64 items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-gradient-to-br from-zinc-950 to-zinc-900">
