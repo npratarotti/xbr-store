@@ -217,6 +217,7 @@ export function Products() {
                     price={product.price}
                     installment={product.installment}
                     rating={product.rating}
+                    reviewCount={product.reviewCount} 
                     badge={product.badge}
                     stock={product.stock}
                   />

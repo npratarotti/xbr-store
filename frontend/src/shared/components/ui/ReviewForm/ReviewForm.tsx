@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { StarRating } from "../StarRating/StarRating";
-import type { Review } from "../../../types/review";
+import { uploadReviewImage } from "../../../hooks/useReviewActions";
 
 type ReviewFormProps = {
-  initialReview?: Review | null;
-  onSubmit: (data: {
+  initialReview?: {
     rating: number;
     comment: string;
     photo?: string;
-  }) => void;
+  } | null;
+  onSubmit: (data: {
+    rating: number;
+    comment: string;
+    photoFile?: File;
+    photoUrl?: string | null;
+  }) => Promise<void> | void;
   onCancel?: () => void;
 };
 
@@ -21,23 +26,24 @@ export function ReviewForm({
 }: ReviewFormProps) {
   const [rating, setRating] = useState(initialReview?.rating ?? 0);
   const [comment, setComment] = useState(initialReview?.comment ?? "");
-  const [photo, setPhoto] = useState<string | undefined>(
-    initialReview?.photo
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>(
+    initialReview?.photo ?? ""
   );
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setRating(initialReview?.rating ?? 0);
     setComment(initialReview?.comment ?? "");
-    setPhoto(initialReview?.photo);
+    setPhotoPreview(initialReview?.photo ?? "");
+    setPhotoFile(null);
     setError("");
   }, [initialReview]);
 
-  const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -51,20 +57,19 @@ export function ReviewForm({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPhoto(reader.result as string);
-      setError("");
-    };
-    reader.readAsDataURL(file);
+    setPhotoFile(file);
+    const url = URL.createObjectURL(file);
+    setPhotoPreview(url);
+    setError("");
   };
 
   const handleRemovePhoto = () => {
-    setPhoto(undefined);
+    setPhotoFile(null);
+    setPhotoPreview("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (rating === 0) {
@@ -77,11 +82,29 @@ export function ReviewForm({
       return;
     }
 
-    onSubmit({
-      rating,
-      comment: comment.trim(),
-      photo,
-    });
+    setIsSubmitting(true);
+
+    try {
+      let photoUrl: string | null = initialReview?.photo ?? null;
+
+      if (photoFile) {
+        photoUrl = await uploadReviewImage(photoFile);
+      } else if (!photoPreview) {
+        photoUrl = null;
+      }
+
+      await onSubmit({
+        rating,
+        comment: comment.trim(),
+        photoFile: photoFile ?? undefined,
+        photoUrl,
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Erro ao publicar avaliação."
+      );
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -104,7 +127,6 @@ export function ReviewForm({
           <label className="mb-2 block text-sm font-medium text-text/80">
             Sua nota *
           </label>
-
           <StarRating value={rating} onChange={setRating} size="lg" />
         </div>
 
@@ -115,7 +137,6 @@ export function ReviewForm({
           >
             Comentário *
           </label>
-
           <textarea
             id="review-comment"
             value={comment}
@@ -131,14 +152,13 @@ export function ReviewForm({
             Foto (opcional)
           </label>
 
-          {photo ? (
+          {photoPreview ? (
             <div className="relative overflow-hidden rounded-2xl border border-border">
               <img
-                src={photo}
+                src={photoPreview}
                 alt="Prévia"
                 className="max-h-64 w-full object-cover"
               />
-
               <button
                 type="button"
                 onClick={handleRemovePhoto}
@@ -150,8 +170,7 @@ export function ReviewForm({
           ) : (
             <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-background px-5 py-8 text-sm text-muted transition hover:border-violet-500/50 hover:text-violet-400">
               <span>📷</span>
-              <span>Escolher imagem</span>
-
+              <span>Escolher imagem (até 2 MB)</span>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -173,16 +192,25 @@ export function ReviewForm({
       <div className="relative mt-6 flex flex-wrap gap-3">
         <button
           type="submit"
-          className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-3 font-bold text-white shadow-lg shadow-violet-700/20 transition hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98]"
+          disabled={isSubmitting}
+          className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-3 font-bold text-white shadow-lg shadow-violet-700/20 transition hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {initialReview ? "Salvar alterações" : "Publicar avaliação"}
+          {isSubmitting && (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          )}
+          {isSubmitting
+            ? "Publicando..."
+            : initialReview
+              ? "Salvar alterações"
+              : "Publicar avaliação"}
         </button>
 
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-2xl border border-border bg-background px-6 py-3 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text"
+            disabled={isSubmitting}
+            className="rounded-2xl border border-border bg-background px-6 py-3 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text disabled:opacity-60"
           >
             Cancelar
           </button>

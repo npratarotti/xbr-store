@@ -9,6 +9,7 @@ export type Product = {
   image: string;
   installment: string;
   rating: number;
+  reviewCount: number;
   badge?: string;
   stock?: number;
 };
@@ -28,6 +29,7 @@ function mapRow(row: any): Product {
     image: row.image_url,
     installment: row.installment,
     rating: Number(row.rating),
+    reviewCount: Number(row.review_count ?? 0),
     badge: row.badge ?? undefined,
     stock: typeof row.stock === "number" ? row.stock : undefined,
   };
@@ -65,8 +67,10 @@ export function useProducts(): UseProductsResult {
 
     load();
 
-    // Cria o canal DEPOIS do load, e com nome único
-    const channelName = `products-changes-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const channelName = `products-changes-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
+
     channel = supabase
       .channel(channelName)
       .on(
@@ -80,9 +84,7 @@ export function useProducts(): UseProductsResult {
 
     return () => {
       mounted = false;
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 

@@ -5,18 +5,17 @@ import { Toast } from "../../shared/components/ui/Toast";
 import { useCart } from "../../app/providers/CartProvider";
 import { useProduct } from "../../shared/hooks/useProduct";
 import { useAuth } from "../../app/providers/AuthProvider";
+import { useProductReviews } from "../../shared/hooks/useReviews";
 import {
-  useReviews,
-  getProductReviews,
-  getAverageRating,
   hasUserBoughtProduct,
   getUserReview,
   upsertReview,
   deleteReview,
-} from "../../shared/hooks/useReviews";
+} from "../../shared/hooks/useReviewActions";
 import { ReviewCard } from "../../shared/components/ui/ReviewCard/ReviewCard";
 import { ReviewForm } from "../../shared/components/ui/ReviewForm/ReviewForm";
 import { StarRating } from "../../shared/components/ui/StarRating/StarRating";
+import type { Review } from "../../shared/types/review";
 
 type ToastState = {
   message: string;
@@ -36,21 +35,47 @@ export function Product() {
   const [showToast, setShowToast] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  useReviews();
+  // Reviews do produto
+  const { reviews } = useProductReviews(productId);
 
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const reviews = product ? getProductReviews(productId) : [];
-  const { average, count } = product
-    ? getAverageRating(productId)
-    : { average: 0, count: 0 };
+  // Review do usuário logado (async)
+  const [userReview, setUserReview] = useState<{
+    id: number;
+    rating: number;
+    comment: string;
+    photo?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!user || !productId) {
+      setUserReview(null);
+      return;
+    }
+
+    let mounted = true;
+
+    getUserReview(user.id, productId).then((data) => {
+      if (mounted) setUserReview(data);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [user, productId, reviews.length]);
 
   const userEmail = user?.email?.toLowerCase().trim() ?? "";
   const hasBought = userEmail
     ? hasUserBoughtProduct(userEmail, productId)
     : false;
-  const userReview = userEmail ? getUserReview(userEmail, productId) : null;
+
+  const average =
+    reviews.length > 0
+      ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+      : 0;
+  const count = reviews.length;
 
   useEffect(() => {
     setShowForm(false);
@@ -159,26 +184,28 @@ export function Product() {
     }
   };
 
-  const handleSubmitReview = (data: {
+  const handleSubmitReview = async (data: {
     rating: number;
     comment: string;
-    photo?: string;
+    photoFile?: File;
+    photoUrl?: string | null;
   }) => {
-    if (!user) return;
+    if (!user || !product) return;
 
     const isEditing = !!userReview;
 
-    upsertReview({
+    await upsertReview({
       productId: product.id,
-      userEmail: user.email,
-      userName: user.name,
+      userId: user.id,
       rating: data.rating,
       comment: data.comment,
-      photo: data.photo,
+      photoUrl: data.photoUrl,
     });
 
-    setShowForm(false);
+    const refreshed = await getUserReview(user.id, product.id);
+    setUserReview(refreshed);
 
+    setShowForm(false);
     setToast({
       message: isEditing
         ? "Sua avaliação foi atualizada!"
@@ -187,16 +214,28 @@ export function Product() {
     });
   };
 
-  const handleDeleteReview = () => {
+  const handleDeleteReview = async () => {
     if (!userReview) return;
-    deleteReview(userReview.id);
-    setShowDeleteConfirm(false);
 
-    setToast({
-      message: "Sua avaliação foi removida.",
-      type: "error",
-    });
+    try {
+      await deleteReview(userReview.id);
+      setUserReview(null);
+      setShowDeleteConfirm(false);
+      setToast({
+        message: "Sua avaliação foi removida.",
+        type: "error",
+      });
+    } catch (err) {
+      setToast({
+        message:
+          err instanceof Error ? err.message : "Erro ao deletar avaliação.",
+        type: "error",
+      });
+    }
   };
+
+  const isOwner = (review: Review) =>
+    !!user && review.userId === user.id;
 
   return (
     <>
@@ -409,18 +448,16 @@ export function Product() {
             {reviews.length > 0 && (
               <div className="space-y-5">
                 {reviews.map((review) => {
-                  const isOwner =
-                    !!user &&
-                    review.userEmail.toLowerCase().trim() === userEmail;
+                  const owned = isOwner(review);
 
                   return (
                     <ReviewCard
                       key={review.id}
                       review={review}
-                      isOwner={isOwner}
-                      onEdit={isOwner ? () => setShowForm(true) : undefined}
+                      isOwner={owned}
+                      onEdit={owned ? () => setShowForm(true) : undefined}
                       onDelete={
-                        isOwner ? () => setShowDeleteConfirm(true) : undefined
+                        owned ? () => setShowDeleteConfirm(true) : undefined
                       }
                     />
                   );

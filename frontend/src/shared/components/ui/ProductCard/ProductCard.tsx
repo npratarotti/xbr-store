@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Toast } from "../Toast";
 import { useCart } from "../../../../app/providers/CartProvider";
 import { useWishlist } from "../../../../app/providers/WishlistProvider";
-import { useReviews, getAverageRating } from "../../../../shared/hooks/useReviews";
+import { useAuth } from "../../../../app/providers/AuthProvider";
 
 type ProductCardProps = {
   id: number;
@@ -13,6 +13,7 @@ type ProductCardProps = {
   price: number;
   installment?: string;
   rating: number;
+  reviewCount?: number;
   badge?: string;
   stock?: number;
 };
@@ -25,18 +26,21 @@ export function ProductCard({
   price,
   installment,
   rating,
+  reviewCount = 0,
   badge,
   stock,
 }: ProductCardProps) {
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
-
-  // Reatividade às reviews — quando alguém avalia, o card atualiza
-  useReviews();
-  const { count: reviewsCount } = getAverageRating(id);
+  const { user } = useAuth();
 
   const [showToast, setShowToast] = useState(false);
   const [showWishToast, setShowWishToast] = useState(false);
+  const [wishToastMsg, setWishToastMsg] = useState("");
+  const [wishToastType, setWishToastType] = useState<"success" | "error">(
+    "success"
+  );
 
   const isOutOfStock = stock === 0;
   const isLowStock = typeof stock === "number" && stock > 0 && stock <= 5;
@@ -54,9 +58,28 @@ export function ProductCard({
     }, 2500);
   };
 
-  const handleToggleWishlist = () => {
-    toggleWishlist(id);
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      setWishToastMsg("Faça login para salvar favoritos");
+      setWishToastType("error");
+      setShowWishToast(true);
 
+      setTimeout(() => {
+        setShowWishToast(false);
+        navigate("/login");
+      }, 1500);
+
+      return;
+    }
+
+    await toggleWishlist(id);
+
+    setWishToastMsg(
+      isFavorited
+        ? `${name} foi removido dos favoritos`
+        : `${name} foi adicionado aos favoritos`
+    );
+    setWishToastType("success");
     setShowWishToast(true);
 
     setTimeout(() => {
@@ -71,13 +94,7 @@ export function ProductCard({
       )}
 
       {showWishToast && (
-        <Toast
-          message={
-            isFavorited
-              ? `${name} foi adicionado aos favoritos`
-              : `${name} foi removido dos favoritos`
-          }
-        />
+        <Toast message={wishToastMsg} type={wishToastType} />
       )}
 
       <article
@@ -179,7 +196,7 @@ export function ProductCard({
           {name}
         </Link>
 
-        {/* 🆕 Rating com contador de avaliações */}
+        {/* Rating com contador de avaliações */}
         <div className="mt-3 flex items-center gap-2">
           <span className="text-sm tracking-wide text-yellow-400">
             {"★".repeat(Math.floor(rating))}
@@ -189,9 +206,9 @@ export function ProductCard({
             {rating.toFixed(1)}
           </span>
 
-          {reviewsCount > 0 && (
+          {reviewCount > 0 && (
             <span className="text-xs font-medium text-muted">
-              ({reviewsCount})
+              ({reviewCount})
             </span>
           )}
         </div>

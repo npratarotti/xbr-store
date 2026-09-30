@@ -11,6 +11,7 @@ function mapRow(row: any): Product {
     image: row.image_url,
     installment: row.installment,
     rating: Number(row.rating),
+    reviewCount: Number(row.review_count ?? 0),
     badge: row.badge ?? undefined,
     stock: typeof row.stock === "number" ? row.stock : undefined,
   };
