@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { products as mockProducts } from "../constants/products";
+import { supabase } from "../../lib/supabase";
 
 export type Product = {
   id: number;
@@ -10,69 +10,81 @@ export type Product = {
   installment: string;
   rating: number;
   badge?: string;
-  /** undefined ou null = estoque ilimitado. 0 = esgotado. */
   stock?: number;
 };
 
-function formatInstallment(price: number) {
-  const value = price / 12;
-  return `12x de ${value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  })}`;
-}
+type UseProductsResult = {
+  products: Product[];
+  loading: boolean;
+  error: string | null;
+};
 
-function normalizeProduct(raw: any): Product {
-  const mock = mockProducts.find((item) => item.id === raw.id);
-
+function mapRow(row: any): Product {
   return {
-    id: raw.id,
-    name: raw.name,
-    category: raw.category,
-    price: raw.price,
-    image: raw.image,
-    installment: mock?.installment ?? formatInstallment(raw.price),
-    rating: mock?.rating ?? 5,
-    badge: mock?.badge,
-    stock:
-      typeof raw.stock === "number" && raw.stock >= 0
-        ? raw.stock
-        : undefined,
+    id: Number(row.id),
+    name: row.name,
+    category: row.category,
+    price: Number(row.price),
+    image: row.image_url,
+    installment: row.installment,
+    rating: Number(row.rating),
+    badge: row.badge ?? undefined,
+    stock: typeof row.stock === "number" ? row.stock : undefined,
   };
 }
 
-function loadProducts(): Product[] {
-  const stored = localStorage.getItem("xbr-products");
-
-  if (!stored) return mockProducts;
-
-  try {
-    const parsed = JSON.parse(stored);
-
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return mockProducts;
-    }
-
-    return parsed.map(normalizeProduct);
-  } catch {
-    return mockProducts;
-  }
-}
-
-export function useProducts() {
-  const [products, setProducts] = useState<Product[]>(loadProducts);
+export function useProducts(): UseProductsResult {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleUpdate = () => setProducts(loadProducts());
+    let mounted = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    window.addEventListener("xbr-products-updated", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
+    async function load() {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (!mounted) return;
+
+      if (fetchError) {
+        setError(fetchError.message);
+        setProducts([]);
+      } else {
+        setProducts((data ?? []).map(mapRow));
+      }
+
+      setLoading(false);
+    }
+
+    load();
+
+    // Cria o canal DEPOIS do load, e com nome único
+    const channelName = `products-changes-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "products" },
+        () => {
+          if (mounted) load();
+        }
+      )
+      .subscribe();
 
     return () => {
-      window.removeEventListener("xbr-products-updated", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
+      mounted = false;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
-  return products;
+  return { products, loading, error };
 }

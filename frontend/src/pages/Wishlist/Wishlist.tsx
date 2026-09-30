@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { Container } from "../../shared/components/layout/Container";
 import { ProductCard } from "../../shared/components/ui/ProductCard";
+import { ProductSkeleton } from "../../shared/components/ui/ProductSkeleton/ProductSkeleton";
 import { useProducts } from "../../shared/hooks/useProducts";
 import { useWishlist } from "../../app/providers/WishlistProvider";
 
 export function Wishlist() {
   const { wishlist } = useWishlist();
-  const products = useProducts();
+  const { products, loading, error } = useProducts();
 
   const favoriteProducts = products.filter((product) =>
     wishlist.includes(product.id)
@@ -32,7 +33,20 @@ export function Wishlist() {
           </p>
         </div>
 
-        {favoriteProducts.length === 0 ? (
+        {loading ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="rounded-3xl border border-red-500/20 bg-red-500/5 py-20 text-center">
+            <p className="text-xl font-bold text-red-400">
+              Erro ao carregar favoritos
+            </p>
+            <p className="mt-2 text-muted">{error}</p>
+          </div>
+        ) : favoriteProducts.length === 0 ? (
           <div className="rounded-3xl border border-border bg-surface/60 px-6 py-24 text-center">
             <div className="text-6xl">💜</div>
 

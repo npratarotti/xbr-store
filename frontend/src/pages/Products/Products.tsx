@@ -3,12 +3,13 @@ import { useSearchParams } from "react-router-dom";
 
 import { Container } from "../../shared/components/layout/Container";
 import { ProductCard } from "../../shared/components/ui/ProductCard";
+import { ProductSkeleton } from "../../shared/components/ui/ProductSkeleton/ProductSkeleton";
 import { useProducts } from "../../shared/hooks/useProducts";
 import { categories } from "../../shared/constants/categories";
 
 export function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const products = useProducts();
+  const { products, loading, error } = useProducts();
 
   const urlSearch = searchParams.get("search") || "";
   const urlCategory = searchParams.get("category") || "";
@@ -171,50 +172,76 @@ export function Products() {
           </div>
         )}
 
-        <div className="mb-6 flex items-center justify-between">
-          <p className="text-sm text-muted">
-            {filteredProducts.length}{" "}
-            {filteredProducts.length === 1
-              ? "produto encontrado"
-              : "produtos encontrados"}
-          </p>
-        </div>
+        {/* 🆕 Estados de loading, erro e vazio */}
 
-        {filteredProducts.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                image={product.image}
-                name={product.name}
-                category={product.category}
-                price={product.price}
-                installment={product.installment}
-                rating={product.rating}
-                badge={product.badge}
-                stock={product.stock}
-              />
-            ))}
+        {loading ? (
+          <>
+            <div className="mb-6 flex items-center gap-2">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-violet-500" />
+              <p className="text-sm text-muted">Carregando produtos...</p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ProductSkeleton key={i} />
+              ))}
+            </div>
+          </>
+        ) : error ? (
+          <div className="rounded-3xl border border-red-500/20 bg-red-500/5 py-20 text-center">
+            <p className="text-xl font-bold text-red-400">
+              Erro ao carregar produtos
+            </p>
+            <p className="mt-2 text-muted">{error}</p>
           </div>
         ) : (
-          <div className="rounded-3xl border border-border bg-surface/50 py-20 text-center">
-            <p className="text-xl font-bold text-text">
-              Nenhum produto encontrado
-            </p>
+          <>
+            <div className="mb-6 flex items-center justify-between">
+              <p className="text-sm text-muted">
+                {filteredProducts.length}{" "}
+                {filteredProducts.length === 1
+                  ? "produto encontrado"
+                  : "produtos encontrados"}
+              </p>
+            </div>
 
-            <p className="mt-2 text-muted">
-              Tente buscar outro produto ou categoria.
-            </p>
+            {filteredProducts.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    id={product.id}
+                    image={product.image}
+                    name={product.name}
+                    category={product.category}
+                    price={product.price}
+                    installment={product.installment}
+                    rating={product.rating}
+                    badge={product.badge}
+                    stock={product.stock}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-border bg-surface/50 py-20 text-center">
+                <p className="text-xl font-bold text-text">
+                  Nenhum produto encontrado
+                </p>
 
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="mt-6 rounded-2xl bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
-            >
-              Limpar filtros
-            </button>
-          </div>
+                <p className="mt-2 text-muted">
+                  Tente buscar outro produto ou categoria.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="mt-6 rounded-2xl bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
+                >
+                  Limpar filtros
+                </button>
+              </div>
+            )}
+          </>
         )}
       </Container>
     </main>

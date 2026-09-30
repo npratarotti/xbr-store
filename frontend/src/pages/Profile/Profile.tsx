@@ -1,38 +1,30 @@
 import { Link } from "react-router-dom";
 import { Container } from "../../shared/components/layout/Container";
+import { useAuth } from "../../app/providers/AuthProvider";
 import { useOrders, type Order } from "../../shared/hooks/useOrders";
 import {
   ORDER_STATUS_STYLES,
   isOrderStatus,
 } from "../../shared/constants/orderStatus";
 
-function belongsToUser(order: Order, user: { name: string; email: string }) {
+function belongsToUser(
+  order: Order,
+  user: { email: string }
+) {
   const orderEmail = order.customer?.email?.toLowerCase().trim();
-  const orderName = order.customer?.name?.toLowerCase().trim();
   const userEmail = user.email?.toLowerCase().trim();
-  const userName = user.name?.toLowerCase().trim();
 
-  if (orderEmail && userEmail && orderEmail === userEmail) {
-    return true;
-  }
-
-  if (orderName && userName && orderName === userName) {
-    return true;
-  }
-
-  return false;
+  return !!(orderEmail && userEmail && orderEmail === userEmail);
 }
 
 export function Profile() {
-  const user = JSON.parse(
-    localStorage.getItem("xbr-user") || "null"
-  );
-
+  const { user, loading } = useAuth();
   const allOrders = useOrders();
 
-  const orders = user
-    ? allOrders.filter((order) => belongsToUser(order, user))
-    : [];
+  const orders =
+    user && !loading
+      ? allOrders.filter((order) => belongsToUser(order, user))
+      : [];
 
   const formatCurrency = (value: number) =>
     value.toLocaleString("pt-BR", {
@@ -40,44 +32,79 @@ export function Profile() {
       currency: "BRL",
     });
 
+  // Enquanto valida a sessão, mostra um spinner
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background transition-colors duration-300">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet-500/30 border-t-violet-500" />
+      </main>
+    );
+  }
+
+  // Se não tem usuário (não deveria acontecer por causa do ProtectedRoute),
+  // redireciona pra login
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-background py-20 transition-colors duration-300">
+        <Container>
+          <p className="text-center text-muted">Você precisa estar logada.</p>
+        </Container>
+      </main>
+    );
+  }
+
+  const initials = user.name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
-    <main className="min-h-screen bg-[#09090B] py-20">
+    <main className="min-h-screen bg-background py-20 transition-colors duration-300">
       <Container>
         <div className="mb-12">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">
             XBR Store
           </span>
 
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-white md:text-5xl">
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-text md:text-5xl">
             Minha{" "}
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
               conta
             </span>
           </h1>
-          <p className="mt-4 text-zinc-400">
+          <p className="mt-4 text-muted">
             Gerencie seus dados e acompanhe seus pedidos.
           </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
-          <aside className="h-fit rounded-3xl border border-white/10 bg-zinc-900/70 p-7">
+          <aside className="h-fit rounded-3xl border border-border bg-surface/70 p-7">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 text-3xl font-black text-white">
-              {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              {initials}
             </div>
 
-            <h2 className="mt-5 text-xl font-bold text-white">
-              {user?.name || "Usuário"}
+            <h2 className="mt-5 text-xl font-bold text-text">
+              {user.name}
             </h2>
 
-            <p className="mt-2 break-all text-sm text-zinc-500">
-              {user?.email || "E-mail não informado"}
+            <p className="mt-2 break-all text-sm text-muted">
+              {user.email}
             </p>
 
-            <div className="my-6 h-px bg-white/10" />
+            {/* Badge de admin se for admin */}
+            {user.isAdmin && (
+              <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-400">
+                ✦ Administrador
+              </span>
+            )}
+
+            <div className="my-6 h-px bg-border" />
 
             <Link
               to="/products"
-              className="block rounded-2xl border border-white/10 bg-zinc-950 px-5 py-3 text-center font-semibold text-white transition hover:border-violet-500"
+              className="block rounded-2xl border border-border bg-background px-5 py-3 text-center font-semibold text-text transition hover:border-violet-500"
             >
               Continuar comprando
             </Link>
@@ -85,11 +112,11 @@ export function Profile() {
 
           <section>
             <div className="mb-6">
-              <h2 className="text-2xl font-black text-white">
+              <h2 className="text-2xl font-black text-text">
                 Meus pedidos
               </h2>
 
-              <p className="mt-1 text-zinc-500">
+              <p className="mt-1 text-muted">
                 {orders.length}{" "}
                 {orders.length === 1
                   ? "pedido realizado"
@@ -98,14 +125,14 @@ export function Profile() {
             </div>
 
             {orders.length === 0 ? (
-              <div className="rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-20 text-center">
+              <div className="rounded-3xl border border-border bg-surface/60 px-6 py-20 text-center">
                 <div className="text-5xl">📦</div>
 
-                <h3 className="mt-5 text-xl font-bold text-white">
+                <h3 className="mt-5 text-xl font-bold text-text">
                   Você ainda não possui pedidos
                 </h3>
 
-                <p className="mt-2 text-zinc-500">
+                <p className="mt-2 text-muted">
                   Seus pedidos aparecerão aqui depois da primeira compra.
                 </p>
 
@@ -126,19 +153,17 @@ export function Profile() {
                   return (
                     <article
                       key={order.id}
-                      className="rounded-3xl border border-white/10 bg-zinc-900/70 p-6 transition hover:border-violet-500/30"
+                      className="rounded-3xl border border-border bg-surface/70 p-6 transition hover:border-violet-500/30"
                     >
                       <div className="flex flex-col justify-between gap-5 sm:flex-row">
                         <div>
-                          <p className="text-sm text-zinc-500">
-                            Pedido
-                          </p>
+                          <p className="text-sm text-muted">Pedido</p>
 
-                          <p className="mt-1 font-bold text-white">
+                          <p className="mt-1 font-bold text-text">
                             #{order.id}
                           </p>
 
-                          <p className="mt-2 text-sm text-zinc-500">
+                          <p className="mt-2 text-sm text-muted">
                             {new Date(order.createdAt).toLocaleDateString(
                               "pt-BR",
                               {
@@ -152,9 +177,7 @@ export function Profile() {
 
                         <div className="flex items-start gap-4 sm:text-right">
                           <div>
-                            <p className="text-sm text-zinc-500">
-                              Status
-                            </p>
+                            <p className="text-sm text-muted">Status</p>
 
                             <span
                               className={`mt-1 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${style.badge}`}
@@ -167,9 +190,7 @@ export function Profile() {
                           </div>
 
                           <div>
-                            <p className="text-sm text-zinc-500">
-                              Total
-                            </p>
+                            <p className="text-sm text-muted">Total</p>
 
                             <p className="mt-1 text-xl font-black text-violet-400">
                               {formatCurrency(order.total)}
@@ -178,7 +199,7 @@ export function Profile() {
                         </div>
                       </div>
 
-                      <div className="my-5 h-px bg-white/10" />
+                      <div className="my-5 h-px bg-border" />
 
                       <div className="space-y-3">
                         {order.items.map((item) => (
@@ -186,7 +207,7 @@ export function Profile() {
                             key={item.id}
                             className="flex items-center gap-4"
                           >
-                            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-950">
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-background">
                               {item.image ? (
                                 <img
                                   src={item.image}
@@ -199,16 +220,16 @@ export function Profile() {
                             </div>
 
                             <div className="flex-1">
-                              <p className="font-semibold text-white">
+                              <p className="font-semibold text-text">
                                 {item.name}
                               </p>
 
-                              <p className="text-sm text-zinc-500">
+                              <p className="text-sm text-muted">
                                 Quantidade: {item.quantity}
                               </p>
                             </div>
 
-                            <p className="hidden text-sm font-semibold text-zinc-400 sm:block">
+                            <p className="hidden text-sm font-semibold text-muted sm:block">
                               {formatCurrency(item.price * item.quantity)}
                             </p>
                           </div>

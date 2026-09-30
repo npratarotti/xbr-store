@@ -1,13 +1,13 @@
 import { ProductCard } from "../../ui/ProductCard";
+import { ProductSkeleton } from "../../ui/ProductSkeleton/ProductSkeleton";
 import { Container } from "../../layout/Container";
 import { useProducts } from "../../../hooks/useProducts";
 
 export function FeaturedProducts() {
-  const products = useProducts();
+  const { products, loading, error } = useProducts();
 
   return (
     <section className="relative overflow-hidden bg-background py-24 transition-colors duration-300">
-
       {/* Glow de fundo */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-0 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-violet-700/10 blur-[140px]" />
@@ -16,7 +16,6 @@ export function FeaturedProducts() {
       </div>
 
       <Container>
-        {/* Título */}
         <div className="relative mb-14 text-center">
           <span className="mb-4 inline-block text-sm font-semibold uppercase tracking-[0.25em] text-violet-400">
             Nossos produtos
@@ -34,23 +33,37 @@ export function FeaturedProducts() {
           </p>
         </div>
 
-        {/* Grid de produtos */}
-        <div className="relative grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              image={product.image}
-              name={product.name}
-              category={product.category}
-              price={product.price}
-              installment={product.installment}
-              rating={product.rating}
-              badge={product.badge}
-              stock={product.stock}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="relative grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="rounded-3xl border border-red-500/20 bg-red-500/5 py-20 text-center">
+            <p className="text-xl font-bold text-red-400">
+              Erro ao carregar produtos
+            </p>
+            <p className="mt-2 text-muted">{error}</p>
+          </div>
+        ) : (
+          <div className="relative grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            {products.slice(0, 8).map((product) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                image={product.image}
+                name={product.name}
+                category={product.category}
+                price={product.price}
+                installment={product.installment}
+                rating={product.rating}
+                badge={product.badge}
+                stock={product.stock}
+              />
+            ))}
+          </div>
+        )}
       </Container>
     </section>
   );

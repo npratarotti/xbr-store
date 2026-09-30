@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Container } from "../../shared/components/layout/Container";
 import { Toast } from "../../shared/components/ui/Toast";
 import { useCart } from "../../app/providers/CartProvider";
-import { useProducts } from "../../shared/hooks/useProducts";
+import { useProduct } from "../../shared/hooks/useProduct";
 import { useAuth } from "../../app/providers/AuthProvider";
 import {
   useReviews,
@@ -26,8 +26,9 @@ type ToastState = {
 export function Product() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const products = useProducts();
-  const product = products.find((item) => item.id === Number(id));
+
+  const productId = Number(id);
+  const { product, loading, error } = useProduct(productId);
 
   const { addToCart } = useCart();
   const { user } = useAuth();
@@ -36,8 +37,6 @@ export function Product() {
   const [toast, setToast] = useState<ToastState | null>(null);
 
   useReviews();
-
-  const productId = Number(id);
 
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -58,15 +57,34 @@ export function Product() {
     setShowDeleteConfirm(false);
   }, [productId]);
 
-  // Auto-dismiss do toast de review
   useEffect(() => {
     if (!toast) return;
-
     const timer = setTimeout(() => setToast(null), 2500);
     return () => clearTimeout(timer);
   }, [toast]);
 
-  if (!product) {
+  // ===== LOADING =====
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background py-20 transition-colors duration-300">
+        <Container>
+          <div className="grid gap-12 lg:grid-cols-2">
+            <div className="min-h-[500px] animate-pulse rounded-3xl border border-border bg-surface/60" />
+            <div className="flex flex-col justify-center gap-5">
+              <div className="h-4 w-24 animate-pulse rounded-full bg-surface/60" />
+              <div className="h-10 w-3/4 animate-pulse rounded-2xl bg-surface/60" />
+              <div className="h-4 w-32 animate-pulse rounded-full bg-surface/60" />
+              <div className="h-10 w-40 animate-pulse rounded-2xl bg-surface/60" />
+              <div className="h-12 w-full animate-pulse rounded-2xl bg-surface/60" />
+            </div>
+          </div>
+        </Container>
+      </main>
+    );
+  }
+
+  // ===== ERRO ou NÃO ENCONTRADO =====
+  if (error || !product) {
     return (
       <main className="min-h-screen bg-background py-20 transition-colors duration-300">
         <Container>
@@ -95,13 +113,9 @@ export function Product() {
     });
 
     setShowToast(true);
-
-    setTimeout(() => {
-      setShowToast(false);
-    }, 2500);
+    setTimeout(() => setShowToast(false), 2500);
   };
 
-  // 🆕 "Comprar agora" — adiciona e vai direto pro checkout
   const handleBuyNow = () => {
     if (isOutOfStock) return;
 
@@ -115,7 +129,6 @@ export function Product() {
     navigate("/checkout");
   };
 
-  // 🆕 Compartilhar produto
   const handleShare = async () => {
     const url = window.location.href;
 
@@ -128,12 +141,10 @@ export function Product() {
         });
         return;
       } catch {
-        // usuário cancelou — ignora
         return;
       }
     }
 
-    // Fallback: copia pra área de transferência
     try {
       await navigator.clipboard.writeText(url);
       setToast({
@@ -222,7 +233,6 @@ export function Product() {
                   {product.category}
                 </span>
 
-                {/* 🆕 Botão de compartilhar */}
                 <button
                   type="button"
                   onClick={handleShare}
@@ -291,7 +301,6 @@ export function Product() {
                 diferenciada.
               </p>
 
-              {/* 🆕 Botões de ação */}
               <div className="mt-10 flex flex-col gap-3 sm:flex-row lg:max-w-md">
                 <button
                   onClick={handleAddToCart}

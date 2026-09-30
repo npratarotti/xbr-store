@@ -13,8 +13,7 @@ export function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const products = useProducts();
-
+  const { products } = useProducts();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Busca desktop
