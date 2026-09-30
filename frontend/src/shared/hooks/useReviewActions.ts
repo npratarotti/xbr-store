@@ -126,26 +126,20 @@ export async function getUserReview(
 
 /**
  * Verifica se o usuário já comprou o produto
- * (por enquanto ainda lê do localStorage — será migrado na fase de Orders)
+ * (usa a tabela orders do Supabase agora)
  */
-export function hasUserBoughtProduct(
-  userEmail: string,
+export async function hasUserBoughtProduct(
+  userId: string,
   productId: number
-): boolean {
-  try {
-    const raw = localStorage.getItem("xbr-orders");
-    if (!raw) return false;
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id, order_items!inner(product_id)")
+    .eq("user_id", userId)
+    .neq("status", "Cancelado")
+    .eq("order_items.product_id", productId)
+    .limit(1);
 
-    const orders = JSON.parse(raw);
-    const email = userEmail.toLowerCase().trim();
-
-    return orders.some(
-      (order: any) =>
-        order.customer?.email?.toLowerCase().trim() === email &&
-        order.status !== "Cancelado" &&
-        order.items.some((item: any) => item.id === productId)
-    );
-  } catch {
-    return false;
-  }
+  if (error) return false;
+  return (data ?? []).length > 0;
 }

@@ -1,45 +1,121 @@
 import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
 import type { Coupon } from "../types/coupon";
 import { normalizeCouponCode } from "../types/coupon";
 
-function loadCoupons(): Coupon[] {
-  try {
-    const raw = localStorage.getItem("xbr-coupons");
-    if (!raw) return [];
-
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-export function useCoupons() {
-  const [coupons, setCoupons] = useState<Coupon[]>(loadCoupons);
-
-  useEffect(() => {
-    const handleUpdate = () => setCoupons(loadCoupons());
-
-    window.addEventListener("xbr-coupons-updated", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
-
-    return () => {
-      window.removeEventListener("xbr-coupons-updated", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
-    };
-  }, []);
-
-  return coupons;
+/**
+ * Converte row do banco pro formato do app
+ */
+function mapRow(row: any): Coupon {
+  return {
+    code: row.code,
+    type: row.type,
+    value: Number(row.value),
+    minTotal: row.min_total !== null ? Number(row.min_total) : undefined,
+    expiresAt: row.expires_at ?? undefined,
+    active: !!row.active,
+  };
 }
 
 /**
- * Resultado da validação de cupom.
- *
- * Usamos um objeto "achatado" em vez de union discriminada
- * porque o TS tem dificuldade em estreitar unions quando a
- * variável vem de uma função com retorno explícito de union.
- *
- * `reason` só existe quando `valid === false`.
+ * Hook que lista cupons (com realtime)
+ */
+export function useCoupons() {
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from("coupons")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (!mounted) return;
+
+      if (fetchError) {
+        setError(fetchError.message);
+        setCoupons([]);
+      } else {
+        setCoupons((data ?? []).map(mapRow));
+      }
+
+      setLoading(false);
+    }
+
+    load();
+
+    const channelName = `coupons-changes-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
+
+    channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "coupons" },
+        () => {
+          if (mounted) load();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return { coupons, loading, error };
+}
+
+/**
+ * Ações de escrita (usadas no CouponManager)
+ */
+export async function createOrUpdateCoupon(coupon: Coupon) {
+  const payload = {
+    code: normalizeCouponCode(coupon.code),
+    type: coupon.type,
+    value: coupon.value,
+    min_total: coupon.minTotal ?? null,
+    expires_at: coupon.expiresAt ?? null,
+    active: coupon.active,
+  };
+
+  const { error } = await supabase
+    .from("coupons")
+    .upsert(payload, { onConflict: "code" });
+
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteCoupon(code: string) {
+  const { error } = await supabase
+    .from("coupons")
+    .delete()
+    .eq("code", normalizeCouponCode(code));
+
+  if (error) throw new Error(error.message);
+}
+
+export async function toggleCouponActive(code: string, active: boolean) {
+  const { error } = await supabase
+    .from("coupons")
+    .update({ active })
+    .eq("code", normalizeCouponCode(code));
+
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Validação de cupom (permanece no front, é lógica pura)
  */
 export type CouponValidation = {
   valid: boolean;
@@ -47,11 +123,6 @@ export type CouponValidation = {
   reason?: string;
 };
 
-/**
- * Valida um cupom e calcula o desconto.
- * @param coupon Cupom a validar
- * @param subtotal Subtotal atual do carrinho
- */
 export function validateCoupon(
   coupon: Coupon,
   subtotal: number
@@ -111,13 +182,15 @@ export function validateCoupon(
     discount = coupon.value;
   }
 
-  // Desconto nunca passa do subtotal
   discount = Math.min(discount, subtotal);
   discount = Math.round(discount * 100) / 100;
 
   return { valid: true, discount };
 }
 
+/**
+ * Acha cupom na lista por código
+ */
 export function findCoupon(
   coupons: Coupon[],
   code: string

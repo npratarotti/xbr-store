@@ -1,16 +1,20 @@
-import { useShipping, calculateShipping } from "../../shared/hooks/useShipping";
-import { maskCep } from "../../shared/types/shipping";
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Container } from "../../shared/components/layout/Container";
 import { useCart } from "../../app/providers/CartProvider";
+import { useAuth } from "../../app/providers/AuthProvider";
+import {
+  useShipping,
+  calculateShipping,
+} from "../../shared/hooks/useShipping";
 import {
   useCoupons,
   findCoupon,
   validateCoupon,
 } from "../../shared/hooks/useCoupons";
+import { createOrder } from "../../shared/hooks/useOrderActions";
+import { maskCep } from "../../shared/types/shipping";
 import {
   normalizeCouponCode,
   type AppliedCoupon,
@@ -19,15 +23,11 @@ import {
 export function Checkout() {
   const navigate = useNavigate();
 
-  const { cart } = useCart();
+  const { cart, clearCart } = useCart();
+  const { user } = useAuth();
 
-  const coupons = useCoupons();
-
-  const shippingConfig = useShipping();
-
-  const savedUser = localStorage.getItem("xbr-user");
-
-  const user = savedUser ? JSON.parse(savedUser) : null;
+  const { coupons } = useCoupons();
+  const { config: shippingConfig } = useShipping();
 
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
@@ -187,6 +187,11 @@ export function Checkout() {
 
     setError("");
 
+    if (!user) {
+      setError("Você precisa estar logado para finalizar a compra.");
+      return;
+    }
+
     if (cart.length === 0) {
       setError("Seu carrinho está vazio.");
       return;
@@ -208,71 +213,54 @@ export function Checkout() {
 
     setIsSubmitting(true);
 
-    const order = {
-      id: `XBR-${Date.now()}`,
+    try {
+      await createOrder({
+        userId: user.id,
+        customer: {
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+        },
+        address: {
+          cep: cep.trim(),
+          address: address.trim(),
+          number: number.trim(),
+          complement: complement.trim(),
+          city: city.trim(),
+          state: state.trim().toUpperCase(),
+        },
+        payment,
+        items: cart.map((item) => ({
+          productId: item.id,
+          name: item.name,
+          image: item.image,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        coupon: appliedCoupon
+          ? {
+              code: appliedCoupon.code,
+              type: appliedCoupon.type,
+              value: appliedCoupon.value,
+              discount: appliedCoupon.discount,
+            }
+          : undefined,
+        subtotal,
+        discount,
+        shipping: shippingResult
+          ? { price: shippingResult.price, days: shippingResult.days }
+          : { price: 0, days: 0 },
+        total: finalTotal,
+      });
 
-      customer: {
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-      },
-
-      address: {
-        cep: cep.trim(),
-        address: address.trim(),
-        number: number.trim(),
-        complement: complement.trim(),
-        city: city.trim(),
-        state: state.trim().toUpperCase(),
-      },
-
-      payment,
-
-      items: cart,
-
-      subtotal,
-
-      discount,
-
-      shipping: shippingResult
-        ? {
-            price: shippingResult.price,
-            days: shippingResult.days,
-          }
-        : { price: 0, days: 0 },
-
-      coupon: appliedCoupon
-        ? {
-            code: appliedCoupon.code,
-            type: appliedCoupon.type,
-            value: appliedCoupon.value,
-            discount: appliedCoupon.discount,
-          }
-        : undefined,
-
-      total: finalTotal,
-
-      status: "Pendente",
-
-      createdAt: new Date().toISOString(),
-    };
-
-    await new Promise((resolve) => setTimeout(resolve, 900));
-
-    const savedOrders = localStorage.getItem("xbr-orders");
-
-    const orders = savedOrders ? JSON.parse(savedOrders) : [];
-
-    orders.push(order);
-
-    localStorage.setItem("xbr-orders", JSON.stringify(orders));
-    window.dispatchEvent(new Event("xbr-orders-updated"));
-
-    localStorage.setItem("xbr-last-order", JSON.stringify(order));
-
-    localStorage.removeItem("xbr-cart");
-
-    navigate("/order-success");
+      clearCart();
+      navigate("/order-success");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Erro ao criar pedido."
+      );
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -311,7 +299,6 @@ export function Checkout() {
                   >
                     Nome completo *
                   </label>
-
                   <input
                     id="name"
                     type="text"
@@ -330,7 +317,6 @@ export function Checkout() {
                   >
                     E-mail *
                   </label>
-
                   <input
                     id="email"
                     type="email"
@@ -349,7 +335,6 @@ export function Checkout() {
                   >
                     Telefone *
                   </label>
-
                   <input
                     id="phone"
                     type="tel"
@@ -377,7 +362,6 @@ export function Checkout() {
                   >
                     CEP *
                   </label>
-
                   <input
                     id="cep"
                     type="text"
@@ -397,7 +381,6 @@ export function Checkout() {
                   >
                     Número *
                   </label>
-
                   <input
                     id="number"
                     type="text"
@@ -416,7 +399,6 @@ export function Checkout() {
                   >
                     Endereço *
                   </label>
-
                   <input
                     id="address"
                     type="text"
@@ -435,7 +417,6 @@ export function Checkout() {
                   >
                     Complemento
                   </label>
-
                   <input
                     id="complement"
                     type="text"
@@ -453,7 +434,6 @@ export function Checkout() {
                   >
                     Cidade *
                   </label>
-
                   <input
                     id="city"
                     type="text"
@@ -472,7 +452,6 @@ export function Checkout() {
                   >
                     Estado *
                   </label>
-
                   <input
                     id="state"
                     type="text"
@@ -503,10 +482,8 @@ export function Checkout() {
                     onChange={(event) => setPayment(event.target.value)}
                     className="accent-violet-600"
                   />
-
                   <div>
                     <p className="font-semibold text-text">PIX</p>
-
                     <p className="text-sm text-muted">
                       Pagamento instantâneo
                     </p>
@@ -522,12 +499,10 @@ export function Checkout() {
                     onChange={(event) => setPayment(event.target.value)}
                     className="accent-violet-600"
                   />
-
                   <div>
                     <p className="font-semibold text-text">
                       Cartão de crédito
                     </p>
-
                     <p className="text-sm text-muted">Até 12x</p>
                   </div>
                 </label>
@@ -557,20 +532,16 @@ export function Checkout() {
                     <p className="truncate text-sm font-medium text-text">
                       {item.name}
                     </p>
-
                     <p className="mt-1 text-xs text-muted">
                       Quantidade: {item.quantity}
                     </p>
                   </div>
 
                   <span className="whitespace-nowrap text-sm font-semibold text-muted">
-                    {(item.price * item.quantity).toLocaleString(
-                      "pt-BR",
-                      {
-                        style: "currency",
-                        currency: "BRL",
-                      }
-                    )}
+                    {(item.price * item.quantity).toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
                   </span>
                 </div>
               ))}
@@ -586,7 +557,6 @@ export function Checkout() {
                     <p className="text-xs uppercase tracking-wider text-green-500">
                       Cupom aplicado
                     </p>
-
                     <p className="mt-1 truncate font-bold text-text">
                       {appliedCoupon.code}
                     </p>
@@ -607,9 +577,7 @@ export function Checkout() {
                       type="text"
                       value={couponInput}
                       onChange={(event) =>
-                        setCouponInput(
-                          event.target.value.toUpperCase()
-                        )
+                        setCouponInput(event.target.value.toUpperCase())
                       }
                       placeholder="Cupom de desconto"
                       className="flex-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-text uppercase outline-none placeholder:text-muted focus:border-violet-500"
@@ -635,7 +603,6 @@ export function Checkout() {
 
             <div className="flex justify-between text-muted">
               <span>Subtotal</span>
-
               <span>
                 {subtotal.toLocaleString("pt-BR", {
                   style: "currency",
@@ -649,7 +616,8 @@ export function Checkout() {
                 Frete
                 {shippingResult && shippingResult.days > 0 && (
                   <span className="ml-2 text-xs text-muted/70">
-                    ({shippingResult.days} {shippingResult.days === 1 ? "dia" : "dias"})
+                    ({shippingResult.days}{" "}
+                    {shippingResult.days === 1 ? "dia" : "dias"})
                   </span>
                 )}
               </span>
@@ -673,7 +641,6 @@ export function Checkout() {
             {appliedCoupon && (
               <div className="mt-4 flex justify-between text-green-500">
                 <span>Desconto ({appliedCoupon.code})</span>
-
                 <span>
                   -{" "}
                   {appliedCoupon.discount.toLocaleString("pt-BR", {
@@ -688,7 +655,6 @@ export function Checkout() {
 
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-text">Total</span>
-
               <span className="text-2xl font-black text-text">
                 {finalTotal.toLocaleString("pt-BR", {
                   style: "currency",
@@ -705,10 +671,7 @@ export function Checkout() {
               {isSubmitting && (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               )}
-
-              {isSubmitting
-                ? "Processando pedido..."
-                : "Confirmar pedido"}
+              {isSubmitting ? "Processando pedido..." : "Confirmar pedido"}
             </button>
 
             <p className="mt-4 text-center text-xs leading-5 text-muted/70">

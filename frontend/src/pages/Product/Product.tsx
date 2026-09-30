@@ -66,10 +66,23 @@ export function Product() {
     };
   }, [user, productId, reviews.length]);
 
-  const userEmail = user?.email?.toLowerCase().trim() ?? "";
-  const hasBought = userEmail
-    ? hasUserBoughtProduct(userEmail, productId)
-    : false;
+  const [hasBought, setHasBought] = useState(false);
+
+useEffect(() => {
+  if (!user || !productId) {
+    setHasBought(false);
+    return;
+  }
+
+  let mounted = true;
+  hasUserBoughtProduct(user.id, productId).then((bought) => {
+    if (mounted) setHasBought(bought);
+  });
+
+  return () => {
+    mounted = false;
+  };
+}, [user, productId, reviews.length]);
 
   const average =
     reviews.length > 0

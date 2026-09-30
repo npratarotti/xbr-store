@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { useOrders, type Order } from "../../../shared/hooks/useOrders";
+import { useOrders } from "../../../shared/hooks/useOrders";
+import { updateOrderStatus } from "../../../shared/hooks/useOrderActions";
 import {
   ORDER_STATUSES,
   ORDER_STATUS_STYLES,
@@ -31,7 +32,7 @@ function isWithinPeriod(createdAt: string, period: PeriodFilter) {
 }
 
 export function OrderManager() {
-  const orders = useOrders();
+  const { orders, loading } = useOrders();
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("Todos");
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("all");
@@ -39,20 +40,14 @@ export function OrderManager() {
     useState<CustomerFilter>("all");
   const [search, setSearch] = useState("");
 
-  const handleStatusChange = (orderId: string, status: OrderStatus) => {
-    const raw = localStorage.getItem("xbr-orders");
-    if (!raw) return;
-
+  const handleStatusChange = async (
+    orderId: number,
+    status: OrderStatus
+  ) => {
     try {
-      const all: Order[] = JSON.parse(raw);
-      const updated = all.map((order) =>
-        order.id === orderId ? { ...order, status } : order
-      );
-
-      localStorage.setItem("xbr-orders", JSON.stringify(updated));
-      window.dispatchEvent(new Event("xbr-orders-updated"));
-    } catch {
-      // ignore
+      await updateOrderStatus(orderId, status);
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err);
     }
   };
 
@@ -100,7 +95,7 @@ export function OrderManager() {
 
         const matchesSearch =
           !normalizedSearch ||
-          order.id.toLowerCase().includes(normalizedSearch) ||
+          order.code.toLowerCase().includes(normalizedSearch) ||
           order.customer?.name?.toLowerCase().includes(normalizedSearch) ||
           order.customer?.email?.toLowerCase().includes(normalizedSearch);
 
@@ -162,281 +157,296 @@ export function OrderManager() {
         </p>
       </div>
 
-      {/* Filtros de status */}
-      {orders.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {(["Todos", ...ORDER_STATUSES] as StatusFilter[]).map((status) => {
-            const isActive = statusFilter === status;
-
-            return (
-              <button
-                key={status}
-                type="button"
-                onClick={() => setStatusFilter(status)}
-                className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
-                  isActive
-                    ? "border-violet-500/40 bg-violet-500/20 text-violet-300"
-                    : "border-border bg-surface/60 text-muted hover:border-violet-500/30 hover:text-text"
-                }`}
-              >
-                {status}{" "}
-                <span
-                  className={
-                    isActive
-                      ? "ml-1 text-violet-200"
-                      : "ml-1 text-muted/80"
-                  }
-                >
-                  ({countsByStatus[status]})
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Busca + cliente + período */}
-      {orders.length > 0 && (
-        <div className="mb-6 flex flex-col gap-3 md:flex-row">
-          <input
-            type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar por número, nome ou e-mail..."
-            className="flex-1 rounded-2xl border border-border bg-background px-5 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-violet-500"
-          />
-
-          <select
-            value={customerFilter}
-            onChange={(event) => setCustomerFilter(event.target.value)}
-            className="rounded-2xl border border-border bg-background px-5 py-3 text-sm text-muted outline-none transition focus:border-violet-500"
-          >
-            <option value="all">Todos os clientes</option>
-
-            {customers.map((customer) => (
-              <option key={customer.email} value={customer.email}>
-                {customer.name} ({customer.count})
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={periodFilter}
-            onChange={(event) =>
-              setPeriodFilter(event.target.value as PeriodFilter)
-            }
-            className="rounded-2xl border border-border bg-background px-5 py-3 text-sm text-muted outline-none transition focus:border-violet-500"
-          >
-            <option value="all">Todo o período</option>
-            <option value="today">Hoje</option>
-            <option value="7d">Últimos 7 dias</option>
-            <option value="30d">Últimos 30 dias</option>
-          </select>
-        </div>
-      )}
-
-      {/* Contagem */}
-      {orders.length > 0 && (
-        <div className="mb-4 flex items-center gap-2">
-          <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
-          <p className="text-sm text-muted">
-            <span className="font-bold text-text">{filteredOrders.length}</span>{" "}
-            de {orders.length} pedido(s)
-          </p>
-        </div>
-      )}
-
-      {orders.length === 0 ? (
-        <div className="rounded-3xl border border-border bg-surface/70 px-6 py-20 text-center">
-          <div className="text-5xl">📦</div>
-
-          <h3 className="mt-5 text-xl font-bold text-text">
-            Nenhum pedido ainda
-          </h3>
-
-          <p className="mt-2 text-muted">
-            Os pedidos realizados pelos clientes aparecerão aqui.
-          </p>
-        </div>
-      ) : filteredOrders.length === 0 ? (
-        <div className="rounded-3xl border border-border bg-surface/70 px-6 py-16 text-center">
-          <p className="text-muted">
-            Nenhum pedido corresponde aos filtros.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => {
-              setStatusFilter("Todos");
-              setPeriodFilter("all");
-              setCustomerFilter("all");
-              setSearch("");
-            }}
-            className="mt-5 rounded-2xl border border-border bg-background px-5 py-2.5 text-sm font-semibold text-muted transition hover:border-violet-500 hover:text-text"
-          >
-            Limpar filtros
-          </button>
+      {loading ? (
+        <div className="space-y-5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-48 animate-pulse rounded-3xl border border-border bg-surface/60"
+            />
+          ))}
         </div>
       ) : (
-        <div className="space-y-5">
-          {filteredOrders.map((order) => {
-            const style = isOrderStatus(order.status)
-              ? ORDER_STATUS_STYLES[order.status]
-              : ORDER_STATUS_STYLES.Pendente;
+        <>
+          {/* Filtros de status */}
+          {orders.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {(["Todos", ...ORDER_STATUSES] as StatusFilter[]).map((status) => {
+                const isActive = statusFilter === status;
 
-            return (
-              <article
-                key={order.id}
-                className="group relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30"
-              >
-                <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
-
-                <div className="relative flex flex-col justify-between gap-5 lg:flex-row">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted">
-                      Pedido
-                    </p>
-
-                    <h3 className="mt-1 text-lg font-bold text-text">
-                      #{order.id}
-                    </h3>
-
-                    <p className="mt-2 text-sm text-muted">
-                      {new Date(order.createdAt).toLocaleString("pt-BR")}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4">
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => setStatusFilter(status)}
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                      isActive
+                        ? "border-violet-500/40 bg-violet-500/20 text-violet-300"
+                        : "border-border bg-surface/60 text-muted hover:border-violet-500/30 hover:text-text"
+                    }`}
+                  >
+                    {status}{" "}
                     <span
-                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold ${style.badge}`}
+                      className={
+                        isActive
+                          ? "ml-1 text-violet-200"
+                          : "ml-1 text-muted/80"
+                      }
                     >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${style.dot}`}
-                      />
-                      {order.status}
+                      ({countsByStatus[status]})
                     </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-                    <p className="text-xl font-black text-violet-400">
-                      {formatCurrency(order.total)}
-                    </p>
-                  </div>
-                </div>
+          {/* Busca + cliente + período */}
+          {orders.length > 0 && (
+            <div className="mb-6 flex flex-col gap-3 md:flex-row">
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar por número, nome ou e-mail..."
+                className="flex-1 rounded-2xl border border-border bg-background px-5 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-violet-500"
+              />
 
-                <div className="relative my-5 h-px bg-border" />
+              <select
+                value={customerFilter}
+                onChange={(event) => setCustomerFilter(event.target.value)}
+                className="rounded-2xl border border-border bg-background px-5 py-3 text-sm text-muted outline-none transition focus:border-violet-500"
+              >
+                <option value="all">Todos os clientes</option>
 
-                <div className="relative grid gap-5 md:grid-cols-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted">
-                      Cliente
-                    </p>
+                {customers.map((customer) => (
+                  <option key={customer.email} value={customer.email}>
+                    {customer.name} ({customer.count})
+                  </option>
+                ))}
+              </select>
 
-                    <p className="mt-2 font-semibold text-text">
-                      {order.customer.name}
-                    </p>
+              <select
+                value={periodFilter}
+                onChange={(event) =>
+                  setPeriodFilter(event.target.value as PeriodFilter)
+                }
+                className="rounded-2xl border border-border bg-background px-5 py-3 text-sm text-muted outline-none transition focus:border-violet-500"
+              >
+                <option value="all">Todo o período</option>
+                <option value="today">Hoje</option>
+                <option value="7d">Últimos 7 dias</option>
+                <option value="30d">Últimos 30 dias</option>
+              </select>
+            </div>
+          )}
 
-                    <p className="mt-1 break-all text-sm text-muted">
-                      {order.customer.email}
-                    </p>
+          {/* Contagem */}
+          {orders.length > 0 && (
+            <div className="mb-4 flex items-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
+              <p className="text-sm text-muted">
+                <span className="font-bold text-text">
+                  {filteredOrders.length}
+                </span>{" "}
+                de {orders.length} pedido(s)
+              </p>
+            </div>
+          )}
 
-                    {order.customer.phone && (
-                      <p className="mt-1 text-sm text-muted">
-                        {order.customer.phone}
-                      </p>
-                    )}
-                  </div>
+          {orders.length === 0 ? (
+            <div className="rounded-3xl border border-border bg-surface/70 px-6 py-20 text-center">
+              <div className="text-5xl">📦</div>
 
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted">
-                      Produtos
-                    </p>
+              <h3 className="mt-5 text-xl font-bold text-text">
+                Nenhum pedido ainda
+              </h3>
 
-                    <div className="mt-2 space-y-2">
-                      {order.items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex justify-between gap-4 text-sm"
+              <p className="mt-2 text-muted">
+                Os pedidos realizados pelos clientes aparecerão aqui.
+              </p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="rounded-3xl border border-border bg-surface/70 px-6 py-16 text-center">
+              <p className="text-muted">
+                Nenhum pedido corresponde aos filtros.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter("Todos");
+                  setPeriodFilter("all");
+                  setCustomerFilter("all");
+                  setSearch("");
+                }}
+                className="mt-5 rounded-2xl border border-border bg-background px-5 py-2.5 text-sm font-semibold text-muted transition hover:border-violet-500 hover:text-text"
+              >
+                Limpar filtros
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {filteredOrders.map((order) => {
+                const style = isOrderStatus(order.status)
+                  ? ORDER_STATUS_STYLES[order.status]
+                  : ORDER_STATUS_STYLES.Pendente;
+
+                return (
+                  <article
+                    key={order.id}
+                    className="group relative overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-6 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30"
+                  >
+                    <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
+
+                    <div className="relative flex flex-col justify-between gap-5 lg:flex-row">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-muted">
+                          Pedido
+                        </p>
+
+                        <h3 className="mt-1 text-lg font-bold text-text">
+                          #{order.code}
+                        </h3>
+
+                        <p className="mt-2 text-sm text-muted">
+                          {new Date(order.createdAt).toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-4">
+                        <span
+                          className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold ${style.badge}`}
                         >
-                          <span className="text-text/80">
-                            {item.name} × {item.quantity}
-                          </span>
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${style.dot}`}
+                          />
+                          {order.status}
+                        </span>
 
-                          <span className="text-muted">
-                            {formatCurrency(item.price * item.quantity)}
-                          </span>
-                        </div>
-                      ))}
+                        <p className="text-xl font-black text-violet-400">
+                          {formatCurrency(order.total)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted">
-                      Atualizar status
-                    </p>
+                    <div className="relative my-5 h-px bg-border" />
 
-                    <select
-                      value={
-                        isOrderStatus(order.status)
-                          ? order.status
-                          : "Pendente"
-                      }
-                      onChange={(event) =>
-                        handleStatusChange(
-                          order.id,
-                          event.target.value as OrderStatus
-                        )
-                      }
-                      className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm font-semibold text-text outline-none transition focus:border-violet-500"
-                    >
-                      {ORDER_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative grid gap-5 md:grid-cols-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-muted">
+                          Cliente
+                        </p>
 
-                    {order.payment && (
-                      <p className="mt-3 text-xs text-muted">
-                        Pagamento:{" "}
-                        <span className="font-semibold text-text/80">
-                          {order.payment === "pix"
-                            ? "PIX"
-                            : order.payment === "credit"
-                              ? "Cartão de crédito"
-                              : order.payment}
-                        </span>
-                      </p>
-                    )}
+                        <p className="mt-2 font-semibold text-text">
+                          {order.customer.name}
+                        </p>
 
-                    {order.coupon && (
-                      <p className="mt-1 text-xs text-muted">
-                        Cupom:{" "}
-                        <span className="font-semibold text-green-500">
-                          {order.coupon.code} (-
-                          {order.coupon.discount.toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })})
-                        </span>
-                      </p>
-                    )}
+                        <p className="mt-1 break-all text-sm text-muted">
+                          {order.customer.email}
+                        </p>
 
-                    {order.shipping && order.shipping.price > 0 && (
-                      <p className="mt-1 text-xs text-muted">
-                        Frete:{" "}
-                        <span className="font-semibold text-text/80">
-                          {order.shipping.price.toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                        {order.customer.phone && (
+                          <p className="mt-1 text-sm text-muted">
+                            {order.customer.phone}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-muted">
+                          Produtos
+                        </p>
+
+                        <div className="mt-2 space-y-2">
+                          {order.items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex justify-between gap-4 text-sm"
+                            >
+                              <span className="text-text/80">
+                                {item.name} × {item.quantity}
+                              </span>
+
+                              <span className="text-muted">
+                                {formatCurrency(item.price * item.quantity)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-muted">
+                          Atualizar status
+                        </p>
+
+                        <select
+                          value={
+                            isOrderStatus(order.status)
+                              ? order.status
+                              : "Pendente"
+                          }
+                          onChange={(event) =>
+                            handleStatusChange(
+                              order.id,
+                              event.target.value as OrderStatus
+                            )
+                          }
+                          className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm font-semibold text-text outline-none transition focus:border-violet-500"
+                        >
+                          {ORDER_STATUSES.map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+
+                        {order.payment && (
+                          <p className="mt-3 text-xs text-muted">
+                            Pagamento:{" "}
+                            <span className="font-semibold text-text/80">
+                              {order.payment === "pix"
+                                ? "PIX"
+                                : order.payment === "credit"
+                                  ? "Cartão de crédito"
+                                  : order.payment}
+                            </span>
+                          </p>
+                        )}
+
+                        {order.coupon && (
+                          <p className="mt-1 text-xs text-muted">
+                            Cupom:{" "}
+                            <span className="font-semibold text-green-500">
+                              {order.coupon.code} (-
+                              {order.coupon.discount.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })})
+                            </span>
+                          </p>
+                        )}
+
+                        {order.shipping && order.shipping.price > 0 && (
+                          <p className="mt-1 text-xs text-muted">
+                            Frete:{" "}
+                            <span className="font-semibold text-text/80">
+                              {order.shipping.price.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </section>
   );

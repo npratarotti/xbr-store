@@ -1,30 +1,17 @@
 import { Link } from "react-router-dom";
 import { Container } from "../../shared/components/layout/Container";
 import { useAuth } from "../../app/providers/AuthProvider";
-import { useOrders, type Order } from "../../shared/hooks/useOrders";
+import { useOrders } from "../../shared/hooks/useOrders";
 import {
   ORDER_STATUS_STYLES,
   isOrderStatus,
 } from "../../shared/constants/orderStatus";
 
-function belongsToUser(
-  order: Order,
-  user: { email: string }
-) {
-  const orderEmail = order.customer?.email?.toLowerCase().trim();
-  const userEmail = user.email?.toLowerCase().trim();
-
-  return !!(orderEmail && userEmail && orderEmail === userEmail);
-}
-
 export function Profile() {
-  const { user, loading } = useAuth();
-  const allOrders = useOrders();
+  const { user, loading: authLoading } = useAuth();
+  const { orders, loading: ordersLoading } = useOrders();
 
-  const orders =
-    user && !loading
-      ? allOrders.filter((order) => belongsToUser(order, user))
-      : [];
+  const loading = authLoading || ordersLoading;
 
   const formatCurrency = (value: number) =>
     value.toLocaleString("pt-BR", {
@@ -32,7 +19,6 @@ export function Profile() {
       currency: "BRL",
     });
 
-  // Enquanto valida a sessão, mostra um spinner
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background transition-colors duration-300">
@@ -41,8 +27,6 @@ export function Profile() {
     );
   }
 
-  // Se não tem usuário (não deveria acontecer por causa do ProtectedRoute),
-  // redireciona pra login
   if (!user) {
     return (
       <main className="min-h-screen bg-background py-20 transition-colors duration-300">
@@ -85,15 +69,12 @@ export function Profile() {
               {initials}
             </div>
 
-            <h2 className="mt-5 text-xl font-bold text-text">
-              {user.name}
-            </h2>
+            <h2 className="mt-5 text-xl font-bold text-text">{user.name}</h2>
 
             <p className="mt-2 break-all text-sm text-muted">
               {user.email}
             </p>
 
-            {/* Badge de admin se for admin */}
             {user.isAdmin && (
               <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-400">
                 ✦ Administrador
@@ -112,9 +93,7 @@ export function Profile() {
 
           <section>
             <div className="mb-6">
-              <h2 className="text-2xl font-black text-text">
-                Meus pedidos
-              </h2>
+              <h2 className="text-2xl font-black text-text">Meus pedidos</h2>
 
               <p className="mt-1 text-muted">
                 {orders.length}{" "}
@@ -158,11 +137,9 @@ export function Profile() {
                       <div className="flex flex-col justify-between gap-5 sm:flex-row">
                         <div>
                           <p className="text-sm text-muted">Pedido</p>
-
                           <p className="mt-1 font-bold text-text">
-                            #{order.id}
+                            #{order.code}
                           </p>
-
                           <p className="mt-2 text-sm text-muted">
                             {new Date(order.createdAt).toLocaleDateString(
                               "pt-BR",
@@ -178,7 +155,6 @@ export function Profile() {
                         <div className="flex items-start gap-4 sm:text-right">
                           <div>
                             <p className="text-sm text-muted">Status</p>
-
                             <span
                               className={`mt-1 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${style.badge}`}
                             >
@@ -191,7 +167,6 @@ export function Profile() {
 
                           <div>
                             <p className="text-sm text-muted">Total</p>
-
                             <p className="mt-1 text-xl font-black text-violet-400">
                               {formatCurrency(order.total)}
                             </p>
@@ -203,10 +178,7 @@ export function Profile() {
 
                       <div className="space-y-3">
                         {order.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-4"
-                          >
+                          <div key={item.id} className="flex items-center gap-4">
                             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-background">
                               {item.image ? (
                                 <img
@@ -223,7 +195,6 @@ export function Profile() {
                               <p className="font-semibold text-text">
                                 {item.name}
                               </p>
-
                               <p className="text-sm text-muted">
                                 Quantidade: {item.quantity}
                               </p>

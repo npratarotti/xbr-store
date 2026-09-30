@@ -1,76 +1,197 @@
 import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
 import {
-  DEFAULT_SHIPPING,
   normalizeCep,
   type ShippingConfig,
   type ShippingZone,
 } from "../types/shipping";
 
-function loadShipping(): ShippingConfig {
-  try {
-    const raw = localStorage.getItem("xbr-shipping");
-    if (!raw) return DEFAULT_SHIPPING;
-
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.zones)) return DEFAULT_SHIPPING;
-
-    return {
-      freeShippingThreshold:
-        typeof parsed.freeShippingThreshold === "number"
-          ? parsed.freeShippingThreshold
-          : DEFAULT_SHIPPING.freeShippingThreshold,
-      fallbackPrice:
-        typeof parsed.fallbackPrice === "number"
-          ? parsed.fallbackPrice
-          : DEFAULT_SHIPPING.fallbackPrice,
-      fallbackDays:
-        typeof parsed.fallbackDays === "number"
-          ? parsed.fallbackDays
-          : DEFAULT_SHIPPING.fallbackDays,
-      zones: parsed.zones,
-    };
-  } catch {
-    return DEFAULT_SHIPPING;
-  }
+/**
+ * Converte row da tabela shipping_zones pro tipo do app
+ */
+function mapZoneRow(row: any): ShippingZone {
+  return {
+    id: Number(row.id),
+    label: row.label,
+    cepStart: Number(row.cep_start),
+    cepEnd: Number(row.cep_end),
+    price: Number(row.price),
+    days: Number(row.days),
+  };
 }
 
+/**
+ * Hook que busca a config completa (geral + zonas) e escuta realtime
+ */
 export function useShipping() {
-  const [config, setConfig] = useState<ShippingConfig>(loadShipping);
+  const [config, setConfig] = useState<ShippingConfig>({
+    freeShippingThreshold: 0,
+    fallbackPrice: 0,
+    fallbackDays: 0,
+    zones: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleUpdate = () => setConfig(loadShipping());
+    let mounted = true;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    window.addEventListener("xbr-shipping-updated", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
+    async function load() {
+      setLoading(true);
+      setError(null);
+
+      const [configRes, zonesRes] = await Promise.all([
+        supabase.from("shipping_config").select("*").eq("id", 1).maybeSingle(),
+        supabase
+          .from("shipping_zones")
+          .select("*")
+          .order("cep_start", { ascending: true }),
+      ]);
+
+      if (!mounted) return;
+
+      if (configRes.error || zonesRes.error) {
+        setError(configRes.error?.message ?? zonesRes.error?.message ?? "Erro");
+        return;
+      }
+
+      setConfig({
+        freeShippingThreshold: Number(
+          configRes.data?.free_shipping_threshold ?? 0
+        ),
+        fallbackPrice: Number(configRes.data?.fallback_price ?? 0),
+        fallbackDays: Number(configRes.data?.fallback_days ?? 0),
+        zones: (zonesRes.data ?? []).map(mapZoneRow),
+      });
+
+      setLoading(false);
+    }
+
+    load();
+
+    const channelName = `shipping-changes-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
+
+    channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "shipping_zones" },
+        () => {
+          if (mounted) load();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "shipping_config" },
+        () => {
+          if (mounted) load();
+        }
+      )
+      .subscribe();
 
     return () => {
-      window.removeEventListener("xbr-shipping-updated", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
+      mounted = false;
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 
-  return config;
+  return { config, loading, error };
 }
 
-export type ShippingResult = {
-  /** Preço final do frete (0 se grátis) */
+/**
+ * Atualiza a config geral
+ */
+export async function updateShippingConfig(config: {
+  freeShippingThreshold: number;
+  fallbackPrice: number;
+  fallbackDays: number;
+}) {
+  const { error } = await supabase
+    .from("shipping_config")
+    .update({
+      free_shipping_threshold: config.freeShippingThreshold,
+      fallback_price: config.fallbackPrice,
+      fallback_days: config.fallbackDays,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", 1);
+
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Cria uma faixa
+ */
+export async function createShippingZone(zone: {
+  label: string;
+  cepStart: number;
+  cepEnd: number;
   price: number;
-  /** Prazo em dias úteis */
   days: number;
-  /** Faixa que casou (ou undefined se foi fallback) */
+}) {
+  const { error } = await supabase.from("shipping_zones").insert({
+    label: zone.label,
+    cep_start: zone.cepStart,
+    cep_end: zone.cepEnd,
+    price: zone.price,
+    days: zone.days,
+  });
+
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Atualiza uma faixa
+ */
+export async function updateShippingZone(
+  id: number,
+  zone: {
+    label: string;
+    cepStart: number;
+    cepEnd: number;
+    price: number;
+    days: number;
+  }
+) {
+  const { error } = await supabase
+    .from("shipping_zones")
+    .update({
+      label: zone.label,
+      cep_start: zone.cepStart,
+      cep_end: zone.cepEnd,
+      price: zone.price,
+      days: zone.days,
+    })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Deleta uma faixa
+ */
+export async function deleteShippingZone(id: number) {
+  const { error } = await supabase
+    .from("shipping_zones")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Cálculo de frete (lógica pura, permanece no front)
+ */
+export type ShippingResult = {
+  price: number;
+  days: number;
   zone?: ShippingZone;
-  /** Se o frete ficou grátis por atingir o threshold */
   freeBecauseThreshold: boolean;
 };
 
-/**
- * Calcula o frete pro CEP e subtotal dados.
- *
- * @param config Configuração atual (do useShipping)
- * @param cep CEP cru ("01310-100", "01310100", etc.)
- * @param subtotal Valor dos produtos (sem frete)
- * @returns Resultado do cálculo, ou null se o CEP é inválido
- */
 export function calculateShipping(
   config: ShippingConfig,
   cep: string,
@@ -80,7 +201,6 @@ export function calculateShipping(
 
   if (cepNumber <= 0) return null;
 
-  // 1. Acha a faixa
   const zone = config.zones.find(
     (z) => cepNumber >= z.cepStart && cepNumber <= z.cepEnd
   );
@@ -88,7 +208,6 @@ export function calculateShipping(
   const price = zone ? zone.price : config.fallbackPrice;
   const days = zone ? zone.days : config.fallbackDays;
 
-  // 2. Checa frete grátis
   const freeBecauseThreshold =
     config.freeShippingThreshold > 0 &&
     subtotal >= config.freeShippingThreshold;

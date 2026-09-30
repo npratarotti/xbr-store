@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 
 import { Toast } from "../../../shared/components/ui/Toast";
 import { ConfirmDialog } from "../../../shared/components/ui/ConfirmDialog";
-import { useCoupons } from "../../../shared/hooks/useCoupons";
+import {
+  useCoupons,
+  createOrUpdateCoupon,
+  deleteCoupon,
+  toggleCouponActive,
+} from "../../../shared/hooks/useCoupons";
 import {
   normalizeCouponCode,
   type Coupon,
@@ -35,7 +40,7 @@ function isExpired(coupon: Coupon) {
 }
 
 export function CouponManager() {
-  const coupons = useCoupons();
+  const { coupons, loading, error: fetchError } = useCoupons();
 
   const [code, setCode] = useState("");
   const [type, setType] = useState<CouponType>("percent");
@@ -47,14 +52,20 @@ export function CouponManager() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const [toast, setToast] = useState<ToastState | null>(null);
-  const [couponToDelete, setCouponToDelete] =
-    useState<Coupon | null>(null);
+  const [couponToDelete, setCouponToDelete] = useState<Coupon | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 2500);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  useEffect(() => {
+    if (fetchError) {
+      setToast({ message: fetchError, type: "error" });
+    }
+  }, [fetchError]);
 
   const validate = (): FormErrors => {
     const nextErrors: FormErrors = {};
@@ -66,9 +77,7 @@ export function CouponManager() {
       nextErrors.code = "O código precisa ter pelo menos 3 caracteres.";
     } else if (
       !editingCode &&
-      coupons.some(
-        (c) => normalizeCouponCode(c.code) === normalizedCode
-      )
+      coupons.some((c) => normalizeCouponCode(c.code) === normalizedCode)
     ) {
       nextErrors.code = "Já existe um cupom com esse código.";
     }
@@ -100,11 +109,6 @@ export function CouponManager() {
     return nextErrors;
   };
 
-  const persistCoupons = (updated: Coupon[]) => {
-    localStorage.setItem("xbr-coupons", JSON.stringify(updated));
-    window.dispatchEvent(new Event("xbr-coupons-updated"));
-  };
-
   const resetForm = () => {
     setCode("");
     setType("percent");
@@ -115,7 +119,7 @@ export function CouponManager() {
     setErrors({});
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     const validationErrors = validate();
@@ -123,44 +127,48 @@ export function CouponManager() {
 
     if (Object.keys(validationErrors).length > 0) return;
 
-    const normalizedCode = normalizeCouponCode(code);
-    const parsedValue = Number(value);
-    const parsedMin = minTotal.trim() ? Number(minTotal) : undefined;
+    setIsSubmitting(true);
 
-    const newCoupon: Coupon = {
-      code: normalizedCode,
-      type,
-      value: parsedValue,
-      minTotal: parsedMin,
-      expiresAt: expiresAt
-        ? new Date(expiresAt).toISOString()
-        : undefined,
-      active: true,
-    };
+    try {
+      const normalizedCode = normalizeCouponCode(code);
+      const parsedValue = Number(value);
+      const parsedMin = minTotal.trim() ? Number(minTotal) : undefined;
 
-    if (editingCode) {
-      const updated = coupons.map((coupon) =>
-        normalizeCouponCode(coupon.code) === editingCode
-          ? { ...newCoupon, active: coupon.active }
-          : coupon
-      );
+      // Mantém o estado active se estiver editando
+      const existingCoupon = editingCode
+        ? coupons.find(
+            (c) => normalizeCouponCode(c.code) === editingCode
+          )
+        : null;
 
-      persistCoupons(updated);
+      const newCoupon: Coupon = {
+        code: normalizedCode,
+        type,
+        value: parsedValue,
+        minTotal: parsedMin,
+        expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
+        active: existingCoupon?.active ?? true,
+      };
 
-      setToast({
-        message: "Cupom atualizado com sucesso!",
-        type: "success",
-      });
-    } else {
-      persistCoupons([...coupons, newCoupon]);
+      await createOrUpdateCoupon(newCoupon);
 
       setToast({
-        message: "Cupom adicionado com sucesso!",
+        message: editingCode
+          ? "Cupom atualizado com sucesso!"
+          : "Cupom adicionado com sucesso!",
         type: "success",
       });
+
+      resetForm();
+    } catch (err) {
+      setToast({
+        message:
+          err instanceof Error ? err.message : "Erro ao salvar cupom.",
+        type: "error",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    resetForm();
   };
 
   const handleEdit = (coupon: Coupon) => {
@@ -179,39 +187,46 @@ export function CouponManager() {
     setErrors({});
   };
 
-  const handleToggleActive = (coupon: Coupon) => {
-    const updated = coupons.map((c) =>
-      normalizeCouponCode(c.code) === normalizeCouponCode(coupon.code)
-        ? { ...c, active: !c.active }
-        : c
-    );
-
-    persistCoupons(updated);
+  const handleToggleActive = async (coupon: Coupon) => {
+    try {
+      await toggleCouponActive(coupon.code, !coupon.active);
+    } catch (err) {
+      setToast({
+        message:
+          err instanceof Error ? err.message : "Erro ao alterar cupom.",
+        type: "error",
+      });
+    }
   };
 
   const handleDelete = (coupon: Coupon) => setCouponToDelete(coupon);
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!couponToDelete) return;
 
-    const targetCode = normalizeCouponCode(couponToDelete.code);
+    setIsSubmitting(true);
 
-    persistCoupons(
-      coupons.filter(
-        (c) => normalizeCouponCode(c.code) !== targetCode
-      )
-    );
+    try {
+      await deleteCoupon(couponToDelete.code);
 
-    if (editingCode === targetCode) {
-      resetForm();
+      if (editingCode === normalizeCouponCode(couponToDelete.code)) {
+        resetForm();
+      }
+
+      setToast({
+        message: `Cupom "${couponToDelete.code}" excluído.`,
+        type: "error",
+      });
+    } catch (err) {
+      setToast({
+        message:
+          err instanceof Error ? err.message : "Erro ao excluir cupom.",
+        type: "error",
+      });
+    } finally {
+      setCouponToDelete(null);
+      setIsSubmitting(false);
     }
-
-    setToast({
-      message: `Cupom "${couponToDelete.code}" excluído.`,
-      type: "error",
-    });
-
-    setCouponToDelete(null);
   };
 
   const inputClass = (hasError: boolean) =>
@@ -249,9 +264,7 @@ export function CouponManager() {
           <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl" />
 
           <div className="relative mb-5 flex items-center gap-2">
-            <span className="text-lg">
-              {editingCode ? "✏️" : "🎟️"}
-            </span>
+            <span className="text-lg">{editingCode ? "✏️" : "🎟️"}</span>
             <p className="text-sm font-semibold text-text/80">
               {editingCode ? "Editando cupom" : "Novo cupom"}
             </p>
@@ -263,9 +276,7 @@ export function CouponManager() {
                 type="text"
                 placeholder="Código (ex: XBR10)"
                 value={code}
-                onChange={(event) =>
-                  setCode(event.target.value.toUpperCase())
-                }
+                onChange={(event) => setCode(event.target.value.toUpperCase())}
                 className={inputClass(!!errors.code)}
                 disabled={!!editingCode}
               />
@@ -341,16 +352,25 @@ export function CouponManager() {
           <div className="relative mt-6 flex flex-wrap gap-3">
             <button
               type="submit"
-              className="rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white shadow-lg shadow-violet-700/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98]"
+              disabled={isSubmitting}
+              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-7 py-3.5 font-bold text-white shadow-lg shadow-violet-700/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {editingCode ? "Salvar alterações" : "Adicionar cupom"}
+              {isSubmitting && (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              )}
+              {isSubmitting
+                ? "Salvando..."
+                : editingCode
+                  ? "Salvar alterações"
+                  : "Adicionar cupom"}
             </button>
 
             {editingCode && (
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-2xl border border-border bg-background px-7 py-3.5 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text"
+                disabled={isSubmitting}
+                className="rounded-2xl border border-border bg-background px-7 py-3.5 font-semibold text-muted transition hover:border-violet-500/50 hover:text-text disabled:opacity-60"
               >
                 Cancelar
               </button>
@@ -368,14 +388,21 @@ export function CouponManager() {
             </p>
           </div>
 
-          {coupons.length === 0 ? (
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-24 animate-pulse rounded-3xl border border-border bg-surface/60"
+                />
+              ))}
+            </div>
+          ) : coupons.length === 0 ? (
             <div className="rounded-3xl border border-border bg-surface/60 px-6 py-16 text-center">
               <div className="text-5xl">🎟️</div>
-
               <p className="mt-4 font-semibold text-text">
                 Nenhum cupom cadastrado
               </p>
-
               <p className="mt-2 text-sm text-muted">
                 Os cupons criados aparecerão aqui.
               </p>
@@ -427,9 +454,9 @@ export function CouponManager() {
                         {coupon.expiresAt && (
                           <span className="ml-2 text-muted">
                             · válido até{" "}
-                            {new Date(
-                              coupon.expiresAt
-                            ).toLocaleDateString("pt-BR")}
+                            {new Date(coupon.expiresAt).toLocaleDateString(
+                              "pt-BR"
+                            )}
                           </span>
                         )}
                       </p>
