@@ -1,7 +1,11 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
 import { Container } from "../../shared/components/layout/Container";
+import { useCart } from "../../app/providers/CartProvider";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useOrders } from "../../shared/hooks/useOrders";
+import { supabase } from "../../lib/supabase";
 import {
   ORDER_STATUS_STYLES,
   isOrderStatus,
@@ -10,6 +14,10 @@ import {
 export function Profile() {
   const { user, loading: authLoading } = useAuth();
   const { orders, loading: ordersLoading } = useOrders();
+  const { addToCart, clearCart } = useCart();
+  const navigate = useNavigate();
+
+  const [payingOrder, setPayingOrder] = useState<string | null>(null);
 
   const loading = authLoading || ordersLoading;
 
@@ -18,6 +26,81 @@ export function Profile() {
       style: "currency",
       currency: "BRL",
     });
+
+  const handlePayNow = async (order: any) => {
+    if (!user) return;
+
+    setPayingOrder(order.code);
+
+    try {
+      // Reconstrói o carrinho com os itens do pedido
+      clearCart();
+      for (const item of order.items) {
+        for (let i = 0; i < item.quantity; i++) {
+          addToCart({
+            id: item.id,
+            image: item.image ?? "",
+            name: item.name,
+            price: item.price,
+          });
+        }
+      }
+
+      // Pega o token de sessão
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      // Chama a Edge Function pra gerar novo init_point
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            orderCode: order.code,
+            items: order.items.map((item: any) => ({
+              productId: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+            })),
+            customer: {
+              name: order.customer.name,
+              email: order.customer.email,
+              phone: order.customer.phone ?? "",
+            },
+            address: order.address ?? {
+              cep: "",
+              address: "",
+              number: "",
+              city: "",
+              state: "",
+            },
+          }),
+        }
+      );
+
+      const paymentData = await response.json();
+
+      if (!response.ok || !paymentData.init_point) {
+        throw new Error(paymentData.error ?? "Erro ao gerar pagamento");
+      }
+
+      window.location.href = paymentData.init_point;
+    } catch (err) {
+      console.error("Erro ao pagar:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Erro ao gerar pagamento. Tente novamente."
+      );
+      setPayingOrder(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -206,6 +289,23 @@ export function Profile() {
                           </div>
                         ))}
                       </div>
+
+                      {/* Botão Pagar Agora — só aparece se estiver Pendente */}
+                      {order.status === "Pendente" && (
+                        <button
+                          type="button"
+                          onClick={() => handlePayNow(order)}
+                          disabled={payingOrder === order.code}
+                          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-3 font-bold text-white shadow-lg shadow-violet-700/20 transition hover:scale-[1.02] hover:shadow-violet-500/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {payingOrder === order.code && (
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                          )}
+                          {payingOrder === order.code
+                            ? "Gerando pagamento..."
+                            : "Pagar agora"}
+                        </button>
+                      )}
                     </article>
                   );
                 })}
