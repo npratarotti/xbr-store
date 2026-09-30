@@ -12,6 +12,9 @@ import { OrderSuccess } from "../../pages/OrderSuccess/OrderSuccess";
 import { Profile } from "../../pages/Profile/Profile";
 import { About } from "../../pages/About/About";
 import { Wishlist } from "../../pages/Wishlist/Wishlist";
+import { PaymentSuccess } from "../../pages/PaymentSuccess/PaymentSuccess";
+import { PaymentFailure } from "../../pages/PaymentFailure/PaymentFailure";
+import { PaymentPending } from "../../pages/PaymentPending/PaymentPending";
 
 import { CartProvider } from "../providers/CartProvider";
 import { AuthProvider } from "../providers/AuthProvider";
@@ -39,6 +42,11 @@ export function AppRoutes() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/order-success" element={<OrderSuccess />} />
+
+                {/* Pagamento Mercado Pago */}
+                <Route path="/payment/success" element={<PaymentSuccess />} />
+                <Route path="/payment/failure" element={<PaymentFailure />} />
+                <Route path="/payment/pending" element={<PaymentPending />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route path="/checkout" element={<Checkout />} />
