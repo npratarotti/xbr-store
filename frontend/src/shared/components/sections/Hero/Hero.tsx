@@ -49,15 +49,18 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Notebook */}
-          <div className="relative hidden justify-center lg:flex lg:justify-center">
+          {/* Notebook - agora visível em mobile também */}
+          <div className="relative flex justify-center lg:justify-center">
             <img
               src="/images/hero/hero-notebook.png"
               alt="Notebook Gamer"
               className="
                 w-full
-                max-w-[1150px]
-                -translate-x-4
+                max-w-[400px]
+                sm:max-w-[500px]
+                md:max-w-[600px]
+                lg:max-w-[1150px]
+                lg:-translate-x-4
                 xl:-translate-x-8
                 drop-shadow-[0_70px_120px_rgba(124,58,237,0.55)]
                 animate-float

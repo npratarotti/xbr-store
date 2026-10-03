@@ -10,7 +10,6 @@ import { NotFound } from "../../pages/NotFound/NotFound";
 import { Checkout } from "../../pages/Checkout/Checkout";
 import { OrderSuccess } from "../../pages/OrderSuccess/OrderSuccess";
 import { Profile } from "../../pages/Profile/Profile";
-import { About } from "../../pages/About/About";
 import { Wishlist } from "../../pages/Wishlist/Wishlist";
 import { PaymentSuccess } from "../../pages/PaymentSuccess/PaymentSuccess";
 import { PaymentFailure } from "../../pages/PaymentFailure/PaymentFailure";
@@ -23,7 +22,6 @@ import { ThemeProvider } from "../providers/ThemeProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { Admin } from "../../pages/Admin/Admin";
 import { AdminRoute } from "./AdminRoute";
-import { DemoBanner } from "../../shared/components/layout/DemoBanner";
 
 export function AppRoutes() {
   return (
@@ -40,7 +38,6 @@ export function AppRoutes() {
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/about" element={<About />} />
                 <Route path="/order-success" element={<OrderSuccess />} />
 
                 {/* Pagamento Mercado Pago */}
@@ -60,7 +57,6 @@ export function AppRoutes() {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-            <DemoBanner />
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

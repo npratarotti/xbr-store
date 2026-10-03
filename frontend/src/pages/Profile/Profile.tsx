@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-
+import { Link } from "react-router-dom";
 import { Container } from "../../shared/components/layout/Container";
 import { useCart } from "../../app/providers/CartProvider";
 import { useAuth } from "../../app/providers/AuthProvider";
@@ -15,7 +14,6 @@ export function Profile() {
   const { user, loading: authLoading } = useAuth();
   const { orders, loading: ordersLoading } = useOrders();
   const { addToCart, clearCart } = useCart();
-  const navigate = useNavigate();
 
   const [payingOrder, setPayingOrder] = useState<string | null>(null);
 

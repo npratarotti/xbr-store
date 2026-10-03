@@ -145,7 +145,7 @@ export function Header() {
           {/* Busca (desktop) */}
           <div
             ref={searchContainerRef}
-            className="relative hidden flex-1 max-w-xl md:block"
+            className="relative hidden flex-1 max-w-xl lg:block"
           >
             <form onSubmit={handleDesktopSubmit}>
               <input
@@ -216,7 +216,7 @@ export function Header() {
           </div>
 
           {/* Navegação desktop */}
-          <nav className="hidden items-center gap-5 sm:flex">
+          <nav className="hidden items-center gap-5 lg:flex">
             <Link
               to="/"
               className="text-sm font-medium text-muted transition hover:text-text"
@@ -232,13 +232,6 @@ export function Header() {
             </Link>
 
             <Link
-              to="/about"
-              className="text-sm font-medium text-muted transition hover:text-text"
-            >
-              Sobre
-            </Link>
-
-            <Link
               to="/wishlist"
               className="relative text-sm font-medium text-muted transition hover:text-text"
             >
@@ -249,7 +242,7 @@ export function Header() {
               <>
                 <Link
                   to="/admin"
-                  className="hidden rounded-xl px-3 py-2 text-sm font-medium text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300 md:block"
+                  className="hidden rounded-xl px-3 py-2 text-sm font-medium text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300 lg:block"
                 >
                   Admin
                 </Link>
@@ -285,7 +278,7 @@ export function Header() {
               className="relative rounded-xl bg-violet-600 px-4 py-2.5 font-medium text-white transition hover:bg-violet-700"
             >
               🛒
-              <span className="ml-2 hidden sm:inline">Carrinho</span>
+              <span className="ml-2 hidden lg:inline">Carrinho</span>
               {cartQuantity > 0 && (
                 <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-fuchsia-500 px-1.5 text-xs font-bold text-white shadow-lg">
                   {cartQuantity}
@@ -295,7 +288,7 @@ export function Header() {
           </nav>
 
           {/* Carrinho + Toggle + Hamburguer (mobile) */}
-          <div className="flex items-center gap-3 sm:hidden">
+          <div className="flex items-center gap-3 lg:hidden">
             <ThemeToggle />
 
             <Link
@@ -339,7 +332,7 @@ export function Header() {
         onClick={closeMenu}
         className={`
           fixed inset-0 top-20 z-40 bg-black/60 backdrop-blur-sm
-          transition-opacity duration-300 sm:hidden
+          transition-opacity duration-300 lg:hidden
           ${isMenuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}
         `}
       />
@@ -348,7 +341,7 @@ export function Header() {
         className={`
           fixed right-0 top-20 z-50 h-[calc(100vh-5rem)] w-[80%] max-w-sm
           overflow-y-auto border-l border-border bg-background px-6 py-8
-          transition-transform duration-300 ease-out sm:hidden
+          transition-transform duration-300 ease-out lg:hidden
           ${isMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
@@ -407,7 +400,6 @@ export function Header() {
         <nav className="flex flex-col gap-1">
           <Link to="/" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Início</Link>
           <Link to="/products" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Produtos</Link>
-          <Link to="/about" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Sobre</Link>
           <Link to="/wishlist" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Favoritos</Link>
 
           {user && (
