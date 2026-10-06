@@ -23,6 +23,8 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import { Admin } from "../../pages/Admin/Admin";
 import { AdminRoute } from "./AdminRoute";
 
+import { Header } from "../../shared/components/layout/Header/Header";
+
 export function AppRoutes() {
   return (
     <ThemeProvider>
@@ -30,32 +32,38 @@ export function AppRoutes() {
         <CartProvider>
           <WishlistProvider>
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/product/:id" element={<Product />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/order-success" element={<OrderSuccess />} />
+              {/* Header global — fica fixo em todas as páginas */}
+              <Header />
 
-                {/* Pagamento Mercado Pago */}
-                <Route path="/payment/success" element={<PaymentSuccess />} />
-                <Route path="/payment/failure" element={<PaymentFailure />} />
-                <Route path="/payment/pending" element={<PaymentPending />} />
+              {/* pt-20 compensa a altura do header fixo (h-20 = 80px) */}
+              <div className="pt-20">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/product/:id" element={<Product />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
 
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/profile" element={<Profile />} />
+                  {/* Pagamento Mercado Pago */}
+                  <Route path="/payment/success" element={<PaymentSuccess />} />
+                  <Route path="/payment/failure" element={<PaymentFailure />} />
+                  <Route path="/payment/pending" element={<PaymentPending />} />
 
-                  <Route element={<AdminRoute />}>
-                    <Route path="/admin" element={<Admin />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/profile" element={<Profile />} />
+
+                    <Route element={<AdminRoute />}>
+                      <Route path="/admin" element={<Admin />} />
+                    </Route>
                   </Route>
-                </Route>
 
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
             </BrowserRouter>
           </WishlistProvider>
         </CartProvider>

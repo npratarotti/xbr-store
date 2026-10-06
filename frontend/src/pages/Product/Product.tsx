@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Container } from "../../shared/components/layout/Container";
 import { Toast } from "../../shared/components/ui/Toast";
 import { useCart } from "../../app/providers/CartProvider";
+import { useFlyToCart } from "../../shared/hooks/useFlyToCart";
+import { FlyToCart } from "../../shared/components/ui/FlyToCart/FlyToCart";
 import { useProduct } from "../../shared/hooks/useProduct";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useProductReviews } from "../../shared/hooks/useReviews";
@@ -32,14 +34,16 @@ export function Product() {
   const { addToCart } = useCart();
   const { user } = useAuth();
 
-  const [showToast, setShowToast] = useState(false);
-  const [toast, setToast] = useState<ToastState | null>(null);
+  const { fly, triggerFly, clearFly } = useFlyToCart();
 
   // Reviews do produto
   const { reviews } = useProductReviews(productId);
 
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Toast usado SOMENTE para reviews e copiar link
+  const [toast, setToast] = useState<ToastState | null>(null);
 
   // Review do usuário logado (async)
   const [userReview, setUserReview] = useState<{
@@ -68,21 +72,21 @@ export function Product() {
 
   const [hasBought, setHasBought] = useState(false);
 
-useEffect(() => {
-  if (!user || !productId) {
-    setHasBought(false);
-    return;
-  }
+  useEffect(() => {
+    if (!user || !productId) {
+      setHasBought(false);
+      return;
+    }
 
-  let mounted = true;
-  hasUserBoughtProduct(user.id, productId).then((bought) => {
-    if (mounted) setHasBought(bought);
-  });
+    let mounted = true;
+    hasUserBoughtProduct(user.id, productId).then((bought) => {
+      if (mounted) setHasBought(bought);
+    });
 
-  return () => {
-    mounted = false;
-  };
-}, [user, productId, reviews.length]);
+    return () => {
+      mounted = false;
+    };
+  }, [user, productId, reviews.length]);
 
   const average =
     reviews.length > 0
@@ -104,7 +108,7 @@ useEffect(() => {
   // ===== LOADING =====
   if (loading) {
     return (
-      <main className="min-h-screen bg-background py-20 transition-colors duration-300">
+      <main className="min-h-screen bg-background pb-20 transition-colors duration-300">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2">
             <div className="min-h-[500px] animate-pulse rounded-3xl border border-border bg-surface/60" />
@@ -124,7 +128,7 @@ useEffect(() => {
   // ===== ERRO ou NÃO ENCONTRADO =====
   if (error || !product) {
     return (
-      <main className="min-h-screen bg-background py-20 transition-colors duration-300">
+      <main className="min-h-screen bg-background pb-20 transition-colors duration-300">
         <Container>
           <h1 className="text-3xl font-black text-text">
             Produto não encontrado
@@ -140,7 +144,7 @@ useEffect(() => {
     product.stock > 0 &&
     product.stock <= 5;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (isOutOfStock) return;
 
     addToCart({
@@ -150,8 +154,7 @@ useEffect(() => {
       price: product.price,
     });
 
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2500);
+    triggerFly(event, product.image);
   };
 
   const handleBuyNow = () => {
@@ -252,13 +255,20 @@ useEffect(() => {
 
   return (
     <>
-      {showToast && (
-        <Toast message={`${product.name} foi adicionado ao carrinho`} />
+      {/* Efeito de voo para o carrinho */}
+      {fly && (
+        <FlyToCart
+          from={fly.from}
+          to={fly.to}
+          image={fly.image}
+          onComplete={clearFly}
+        />
       )}
 
+      {/* Toast para reviews e copiar link */}
       {toast && <Toast message={toast.message} type={toast.type} />}
 
-      <main className="min-h-screen bg-background py-20 transition-colors duration-300">
+      <main className="min-h-screen bg-background pb-20 transition-colors duration-300">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2">
             <div className="relative flex min-h-[500px] items-center justify-center rounded-3xl border border-border bg-surface/60 p-10">

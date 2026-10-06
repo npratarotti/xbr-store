@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Toast } from "../Toast";
+import { useFlyToCart } from "../../../hooks/useFlyToCart";
+import { FlyToCart } from "../FlyToCart/FlyToCart";
 import { useCart } from "../../../../app/providers/CartProvider";
 import { useWishlist } from "../../../../app/providers/WishlistProvider";
 import { useAuth } from "../../../../app/providers/AuthProvider";
@@ -35,7 +37,8 @@ export function ProductCard({
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { user } = useAuth();
 
-  const [showToast, setShowToast] = useState(false);
+  const { fly, triggerFly, clearFly } = useFlyToCart();
+
   const [showWishToast, setShowWishToast] = useState(false);
   const [wishToastMsg, setWishToastMsg] = useState("");
   const [wishToastType, setWishToastType] = useState<"success" | "error">(
@@ -46,16 +49,11 @@ export function ProductCard({
   const isLowStock = typeof stock === "number" && stock > 0 && stock <= 5;
   const isFavorited = isInWishlist(id);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (isOutOfStock) return;
 
     addToCart({ id, image, name, price });
-
-    setShowToast(true);
-
-    setTimeout(() => {
-      setShowToast(false);
-    }, 2500);
+    triggerFly(event, image);
   };
 
   const handleToggleWishlist = async () => {
@@ -89,8 +87,13 @@ export function ProductCard({
 
   return (
     <>
-      {showToast && (
-        <Toast message={`${name} foi adicionado ao carrinho`} />
+      {fly && (
+        <FlyToCart
+          from={fly.from}
+          to={fly.to}
+          image={fly.image}
+          onComplete={clearFly}
+        />
       )}
 
       {showWishToast && (
@@ -99,19 +102,9 @@ export function ProductCard({
 
       <article
         className="
-          group
-          relative
-          overflow-hidden
-          rounded-3xl
-          border
-          border-border
-          bg-surface/70
-          p-5
-          backdrop-blur-xl
-          transition-all
-          duration-500
-          hover:-translate-y-2
-          hover:border-violet-500/50
+          group relative overflow-hidden rounded-3xl border border-border
+          bg-surface/70 p-5 backdrop-blur-xl transition-all duration-500
+          hover:-translate-y-2 hover:border-violet-500/50
           hover:shadow-[0_25px_70px_rgba(124,58,237,.20)]
         "
       >
@@ -136,7 +129,7 @@ export function ProductCard({
           )}
         </div>
 
-        {/* Botão de favorito (direita) */}
+        {/* Botão de favorito */}
         <button
           type="button"
           onClick={handleToggleWishlist}
@@ -196,7 +189,6 @@ export function ProductCard({
           {name}
         </Link>
 
-        {/* Rating com contador de avaliações */}
         <div className="mt-3 flex items-center gap-2">
           <span className="text-sm tracking-wide text-yellow-400">
             {"★".repeat(Math.floor(rating))}
@@ -230,15 +222,8 @@ export function ProductCard({
           onClick={handleAddToCart}
           disabled={isOutOfStock}
           className={`
-            mt-6
-            w-full
-            rounded-2xl
-            py-3.5
-            font-semibold
-            text-white
-            shadow-lg
-            transition-all
-            duration-300
+            mt-6 w-full rounded-2xl py-3.5 font-semibold text-white shadow-lg
+            transition-all duration-300
             ${
               isOutOfStock
                 ? "cursor-not-allowed bg-zinc-800 text-zinc-500 shadow-none"

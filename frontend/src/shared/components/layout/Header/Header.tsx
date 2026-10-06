@@ -15,6 +15,7 @@ export function Header() {
   const location = useLocation();
   const { products } = useProducts();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Busca desktop
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,6 +41,18 @@ export function Header() {
     };
   }, [isMenuOpen]);
 
+  // Sombra dinâmica ao rolar
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -60,6 +73,7 @@ export function Header() {
       if (event.key === "Escape") {
         setShowSuggestions(false);
         setShowMobileSuggestions(false);
+        setIsMenuOpen(false);
       }
     };
 
@@ -130,7 +144,13 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur transition-colors duration-300">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 border-b border-border transition-all duration-300 ${
+        isScrolled
+          ? "bg-background shadow-lg shadow-black/30"
+          : "bg-background/95 backdrop-blur"
+      }`}
+    >
       <Container>
         <div className="flex h-20 items-center justify-between gap-6">
 
@@ -275,6 +295,7 @@ export function Header() {
 
             <Link
               to="/cart"
+              data-cart-icon
               className="relative rounded-xl bg-violet-600 px-4 py-2.5 font-medium text-white transition hover:bg-violet-700"
             >
               🛒
@@ -293,6 +314,7 @@ export function Header() {
 
             <Link
               to="/cart"
+              data-cart-icon
               className="relative rounded-xl bg-violet-600 px-3 py-2 font-medium text-white transition hover:bg-violet-700"
             >
               🛒
@@ -328,6 +350,8 @@ export function Header() {
       </Container>
 
       {/* MENU MOBILE */}
+
+      {/* OVERLAY */}
       <div
         onClick={closeMenu}
         className={`
@@ -337,80 +361,120 @@ export function Header() {
         `}
       />
 
+      {/* ASIDE DO MENU */}
       <aside
         className={`
-          fixed right-0 top-20 z-50 h-[calc(100vh-5rem)] w-[80%] max-w-sm
-          overflow-y-auto border-l border-border bg-background px-6 py-8
+          fixed right-0 top-20 z-50
+          h-[calc(100dvh-5rem)] w-[80%] max-w-sm
+          flex flex-col
+          border-l border-border bg-background
           transition-transform duration-300 ease-out lg:hidden
           ${isMenuOpen ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        <div className="relative mb-6">
-          <form onSubmit={handleMobileSubmit}>
-            <input
-              type="text"
-              value={mobileSearchQuery}
-              onChange={(event) => {
-                setMobileSearchQuery(event.target.value);
-                setShowMobileSuggestions(true);
-              }}
-              onFocus={() => {
-                if (mobileSearchQuery.trim().length >= 2) {
+        {/* ÁREA COM SCROLL (busca + nav) */}
+        <div className="flex-1 overflow-y-auto px-6 py-8">
+          <div className="relative mb-6">
+            <form onSubmit={handleMobileSubmit}>
+              <input
+                type="text"
+                value={mobileSearchQuery}
+                onChange={(event) => {
+                  setMobileSearchQuery(event.target.value);
                   setShowMobileSuggestions(true);
-                }
-              }}
-              placeholder="Buscar produtos..."
-              className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-violet-500"
-            />
-          </form>
+                }}
+                onFocus={() => {
+                  if (mobileSearchQuery.trim().length >= 2) {
+                    setShowMobileSuggestions(true);
+                  }
+                }}
+                placeholder="Buscar produtos..."
+                className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text outline-none transition placeholder:text-muted focus:border-violet-500"
+              />
+            </form>
 
-          {showMobileSuggestions && mobileSuggestions.length > 0 && (
-            <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
-              <ul className="divide-y divide-border/50">
-                {mobileSuggestions.map((product) => (
-                  <li key={product.id}>
-                    <button
-                      type="button"
-                      onClick={() => goToProduct(product.id)}
-                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-violet-500/10"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
-                        <img src={product.image} alt={product.name} className="h-full w-full object-contain p-1" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-semibold text-text">{product.name}</p>
-                        <p className="mt-0.5 truncate text-[10px] text-muted">{product.category}</p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                onClick={() => goToAllResults(mobileSearchQuery)}
-                className="flex w-full items-center justify-center gap-2 border-t border-border bg-background px-3 py-2.5 text-xs font-semibold text-violet-400 transition hover:bg-violet-500/10"
-              >
-                Ver todos os resultados
-                <span>→</span>
-              </button>
-            </div>
-          )}
+            {showMobileSuggestions && mobileSuggestions.length > 0 && (
+              <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
+                <ul className="divide-y divide-border/50">
+                  {mobileSuggestions.map((product) => (
+                    <li key={product.id}>
+                      <button
+                        type="button"
+                        onClick={() => goToProduct(product.id)}
+                        className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-violet-500/10"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
+                          <img src={product.image} alt={product.name} className="h-full w-full object-contain p-1" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-semibold text-text">{product.name}</p>
+                          <p className="mt-0.5 truncate text-[10px] text-muted">{product.category}</p>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={() => goToAllResults(mobileSearchQuery)}
+                  className="flex w-full items-center justify-center gap-2 border-t border-border bg-background px-3 py-2.5 text-xs font-semibold text-violet-400 transition hover:bg-violet-500/10"
+                >
+                  Ver todos os resultados
+                  <span>→</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <nav className="flex flex-col gap-1">
+            <Link
+              to="/"
+              onClick={closeMenu}
+              className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text"
+            >
+              Início
+            </Link>
+
+            <Link
+              to="/products"
+              onClick={closeMenu}
+              className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text"
+            >
+              Produtos
+            </Link>
+
+            <Link
+              to="/wishlist"
+              onClick={closeMenu}
+              className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text"
+            >
+              Favoritos
+            </Link>
+
+            {user && (
+              <>
+                <Link
+                  to="/admin"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 text-base font-medium text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300"
+                >
+                  Admin
+                </Link>
+
+                <Link
+                  to="/profile"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text"
+                >
+                  Minha conta
+                </Link>
+              </>
+            )}
+          </nav>
         </div>
 
-        <nav className="flex flex-col gap-1">
-          <Link to="/" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Início</Link>
-          <Link to="/products" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Produtos</Link>
-          <Link to="/wishlist" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Favoritos</Link>
-
-          {user && (
-            <>
-              <Link to="/admin" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300">Admin</Link>
-              <Link to="/profile" onClick={closeMenu} className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text">Minha conta</Link>
-            </>
-          )}
-        </nav>
-
-        <div className="mt-8 border-t border-border pt-6">
+        {/* FOOTER FIXO (sempre visível) */}
+        <div className="shrink-0 border-t border-border px-6 py-5">
           {user ? (
             <button
               type="button"
