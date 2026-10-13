@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Bloqueia páginas privadas
+Disallow: /admin
+Disallow: /profile
+Disallow: /checkout
+Disallow: /cart
+Disallow: /reset-password
+Disallow: /payment/
+
+# Sitemap
+Sitemap: https://xbr-store.vercel.app/sitemap.xml

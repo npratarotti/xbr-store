@@ -1,54 +1,49 @@
-import { ProductCard } from "../../ui/ProductCard";
+import { Link } from "react-router-dom";
+import { ProductCard } from "../../ui/ProductCard/ProductCard";
 import { ProductSkeleton } from "../../ui/ProductSkeleton/ProductSkeleton";
-import { Container } from "../../layout/Container";
 import { useProducts } from "../../../hooks/useProducts";
 
 export function FeaturedProducts() {
-  const { products, loading, error } = useProducts();
+  const { products, loading } = useProducts();
+
+  const featured = products.slice(0, 4);
 
   return (
-    <section className="relative overflow-hidden bg-background py-24 transition-colors duration-300">
-      {/* Glow de fundo */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-violet-700/10 blur-[140px]" />
-        <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-fuchsia-600/5 blur-[120px]" />
-        <div className="absolute bottom-0 right-0 h-[300px] w-[300px] rounded-full bg-violet-600/5 blur-[120px]" />
-      </div>
-
-      <Container>
-        <div className="relative mb-14 text-center">
-          <span className="mb-4 inline-block text-sm font-semibold uppercase tracking-[0.25em] text-violet-400">
+    <section className="bg-background py-20 transition-colors duration-300">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mb-12 text-center">
+          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-violet-400">
             Nossos produtos
           </span>
 
-          <h2 className="text-4xl font-black tracking-tight text-text md:text-5xl">
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-text md:text-5xl">
             Produtos em{" "}
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
-              Destaque
+              destaque
             </span>
           </h2>
 
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted md:text-lg">
+          <p className="mt-4 text-muted">
             Os produtos mais desejados da XBR Store.
           </p>
         </div>
 
         {loading ? (
-          <div className="relative grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <ProductSkeleton key={i} />
             ))}
           </div>
-        ) : error ? (
-          <div className="rounded-3xl border border-red-500/20 bg-red-500/5 py-20 text-center">
-            <p className="text-xl font-bold text-red-400">
-              Erro ao carregar produtos
+        ) : featured.length === 0 ? (
+          <div className="rounded-3xl border border-border bg-surface/60 px-6 py-20 text-center">
+            <div className="text-5xl">📦</div>
+            <p className="mt-4 font-semibold text-text">
+              Nenhum produto cadastrado ainda.
             </p>
-            <p className="mt-2 text-muted">{error}</p>
           </div>
         ) : (
-          <div className="relative grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-            {products.slice(0, 8).map((product) => (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {featured.map((product) => (
               <ProductCard
                 key={product.id}
                 id={product.id}
@@ -58,14 +53,23 @@ export function FeaturedProducts() {
                 price={product.price}
                 installment={product.installment}
                 rating={product.rating}
-                reviewCount={product.reviewCount} 
+                reviewCount={product.reviewCount}
                 badge={product.badge}
                 stock={product.stock}
               />
             ))}
           </div>
         )}
-      </Container>
+
+        <div className="mt-12 text-center">
+          <Link
+            to="/products"
+            className="inline-block rounded-2xl border border-border bg-surface px-8 py-4 font-bold text-text transition hover:border-violet-500"
+          >
+            Ver todos os produtos
+          </Link>
+        </div>
+      </div>
     </section>
   );
 }

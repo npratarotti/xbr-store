@@ -17,6 +17,11 @@ import {
 import { ReviewCard } from "../../shared/components/ui/ReviewCard/ReviewCard";
 import { ReviewForm } from "../../shared/components/ui/ReviewForm/ReviewForm";
 import { StarRating } from "../../shared/components/ui/StarRating/StarRating";
+import { SEO } from "../../shared/components/SEO/SEO";
+import {
+  ProductFAQ,
+  type FAQItem,
+} from "../../shared/components/ui/ProductFAQ/ProductFAQ";
 import type { Review } from "../../shared/types/review";
 
 type ToastState = {
@@ -36,16 +41,13 @@ export function Product() {
 
   const { fly, triggerFly, clearFly } = useFlyToCart();
 
-  // Reviews do produto
   const { reviews } = useProductReviews(productId);
 
   const [showForm, setShowForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Toast usado SOMENTE para reviews e copiar link
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  // Review do usuário logado (async)
   const [userReview, setUserReview] = useState<{
     id: number;
     rating: number;
@@ -253,8 +255,54 @@ export function Product() {
   const isOwner = (review: Review) =>
     !!user && review.userId === user.id;
 
+  // ===== SEO DINÂMICO =====
+  const seoDescription = `${product.name} por ${product.price.toLocaleString(
+    "pt-BR",
+    {
+      style: "currency",
+      currency: "BRL",
+    }
+  )} na XBR Store. ${product.installment}. Entrega rápida e segura.`;
+
+  // ===== FAQ DINÂMICO =====
+  const faqItems: FAQItem[] = [
+    {
+      question: "Qual o prazo de entrega?",
+      answer:
+        "Entregamos em todo o Brasil. Na sua cidade, a entrega é feita no mesmo dia (pedidos até 15h). Para outras regiões, o prazo varia entre 3 e 10 dias úteis, dependendo do CEP.",
+    },
+    {
+      question: "Tem garantia?",
+      answer:
+        "Sim! Todos os nossos produtos têm garantia de 90 dias contra defeitos de fabricação. Se houver qualquer problema, é só entrar em contato pelo WhatsApp que resolvemos rapidinho.",
+    },
+    {
+      question: "Serve em qual modelo de celular?",
+      answer: `O produto "${product.name}" é compatível com o modelo indicado na descrição. Se tiver dúvida sobre o seu aparelho, fale com a gente no WhatsApp antes de comprar — te ajudamos a escolher o modelo certo.`,
+    },
+    {
+      question: "Posso pagar no boleto?",
+      answer:
+        "Sim! Aceitamos PIX, cartão de crédito (até 12x) e boleto bancário. No caso do boleto, o pedido é confirmado após a compensação (geralmente em 1-2 dias úteis).",
+    },
+    {
+      question: "Posso trocar ou devolver?",
+      answer:
+        "Sim! Você tem 7 dias corridos após o recebimento para solicitar troca ou devolução, conforme o Código de Defesa do Consumidor. O produto precisa estar em perfeito estado e na embalagem original.",
+    },
+  ];
+
   return (
     <>
+      {/* SEO dinâmico — title, description, OG image */}
+      <SEO
+        title={product.name}
+        description={seoDescription}
+        image={product.image}
+        url={`/product/${product.id}`}
+        type="product"
+      />
+
       {/* Efeito de voo para o carrinho */}
       {fly && (
         <FlyToCart
@@ -398,6 +446,9 @@ export function Product() {
               </div>
             </div>
           </div>
+
+          {/* FAQ */}
+          <ProductFAQ items={faqItems} productName={product.name} />
 
           {/* AVALIAÇÕES */}
           <section className="mt-20">

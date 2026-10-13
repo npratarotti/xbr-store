@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Container } from "../../shared/components/layout/Container";
+import { Toast } from "../../shared/components/ui/Toast";
 import { useCart } from "../../app/providers/CartProvider";
 import { useAuth } from "../../app/providers/AuthProvider";
 import { useOrders } from "../../shared/hooks/useOrders";
@@ -10,12 +11,25 @@ import {
   isOrderStatus,
 } from "../../shared/constants/orderStatus";
 
+type AvatarToast = {
+  message: string;
+  type: "success" | "error";
+};
+
 export function Profile() {
-  const { user, loading: authLoading } = useAuth();
+  const {
+    user,
+    loading: authLoading,
+    updateAvatar,
+    removeAvatar,
+  } = useAuth();
   const { orders, loading: ordersLoading } = useOrders();
   const { addToCart, clearCart } = useCart();
 
   const [payingOrder, setPayingOrder] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarToast, setAvatarToast] = useState<AvatarToast | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loading = authLoading || ordersLoading;
 
@@ -25,13 +39,53 @@ export function Profile() {
       currency: "BRL",
     });
 
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    const result = await updateAvatar(file);
+    setUploadingAvatar(false);
+
+    setAvatarToast(
+      result.success
+        ? { message: "Foto atualizada!", type: "success" }
+        : {
+            message: result.error ?? "Erro ao atualizar foto.",
+            type: "error",
+          }
+    );
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    setTimeout(() => setAvatarToast(null), 2500);
+  };
+
+  const handleRemoveAvatar = async () => {
+    setUploadingAvatar(true);
+    const result = await removeAvatar();
+    setUploadingAvatar(false);
+
+    setAvatarToast(
+      result.success
+        ? { message: "Foto removida.", type: "success" }
+        : {
+            message: result.error ?? "Erro ao remover foto.",
+            type: "error",
+          }
+    );
+
+    setTimeout(() => setAvatarToast(null), 2500);
+  };
+
   const handlePayNow = async (order: any) => {
     if (!user) return;
 
     setPayingOrder(order.code);
 
     try {
-      // Reconstrói o carrinho com os itens do pedido
       clearCart();
       for (const item of order.items) {
         for (let i = 0; i < item.quantity; i++) {
@@ -44,11 +98,9 @@ export function Profile() {
         }
       }
 
-      // Pega o token de sessão
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
 
-      // Chama a Edge Function pra gerar novo init_point
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment`,
         {
@@ -78,6 +130,7 @@ export function Profile() {
               city: "",
               state: "",
             },
+            payment: order.payment,
           }),
         }
       );
@@ -146,20 +199,71 @@ export function Profile() {
 
         <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
           <aside className="h-fit rounded-3xl border border-border bg-surface/70 p-7">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 text-3xl font-black text-white">
-              {initials}
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 text-3xl font-black text-white">
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    initials
+                  )}
+                </div>
+
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60">
+                    <span className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  aria-label="Alterar foto"
+                  className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-violet-600 text-white shadow-lg transition hover:bg-violet-700 disabled:opacity-60"
+                >
+                  📷
+                </button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </div>
+
+              {user.avatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  disabled={uploadingAvatar}
+                  className="mt-2 text-xs text-muted transition hover:text-red-400 disabled:opacity-60"
+                >
+                  Remover foto
+                </button>
+              )}
             </div>
 
-            <h2 className="mt-5 text-xl font-bold text-text">{user.name}</h2>
+            <h2 className="mt-5 text-center text-xl font-bold text-text">
+              {user.name}
+            </h2>
 
-            <p className="mt-2 break-all text-sm text-muted">
+            <p className="mt-2 break-all text-center text-sm text-muted">
               {user.email}
             </p>
 
             {user.isAdmin && (
-              <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-400">
-                ✦ Administrador
-              </span>
+              <div className="mt-3 flex justify-center">
+                <span className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-400">
+                  ✦ Administrador
+                </span>
+              </div>
             )}
 
             <div className="my-6 h-px bg-border" />
@@ -259,7 +363,10 @@ export function Profile() {
 
                       <div className="space-y-3">
                         {order.items.map((item) => (
-                          <div key={item.id} className="flex items-center gap-4">
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-4"
+                          >
                             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-background">
                               {item.image ? (
                                 <img
@@ -288,7 +395,6 @@ export function Profile() {
                         ))}
                       </div>
 
-                      {/* Botão Pagar Agora — só aparece se estiver Pendente */}
                       {order.status === "Pendente" && (
                         <button
                           type="button"
@@ -312,6 +418,10 @@ export function Profile() {
           </section>
         </div>
       </Container>
+
+      {avatarToast && (
+        <Toast message={avatarToast.message} type={avatarToast.type} />
+      )}
     </main>
   );
 }

@@ -40,7 +40,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { orderCode, items, customer, address } = body;
+    const { orderCode, items, customer, address, payment } = body;
 
     if (!orderCode || !items || items.length === 0) {
       return new Response(JSON.stringify({ error: "Dados incompletos" }), {
@@ -51,6 +51,36 @@ serve(async (req) => {
 
     const accessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN") ?? "";
     const siteUrl = Deno.env.get("SITE_URL") ?? "";
+
+    // ===== Mapeia a escolha do usuário pro tipo do Mercado Pago =====
+    // "pix"   → bank_transfer
+    // "credit"→ credit_card
+    // "boleto"→ ticket
+    const allowedType =
+      payment === "pix"
+        ? "bank_transfer"
+        : payment === "boleto"
+          ? "ticket"
+          : "credit_card";
+
+    // Todos os tipos suportados pelo Checkout Pro do MP
+    const allTypes = [
+      "credit_card",
+      "debit_card",
+      "ticket",
+      "bank_transfer",
+      "atm",
+      "prepaid_card",
+      "digital_currency",
+      "digital_wallet",
+      "voucher_card",
+      "crypto_transfer",
+    ];
+
+    // Exclui todos, exceto o escolhido
+    const excludedPaymentTypes = allTypes
+      .filter((type) => type !== allowedType)
+      .map((id) => ({ id }));
 
     // Monta o payload da preferência no formato que o MP espera
     const preferencePayload = {
@@ -80,7 +110,10 @@ serve(async (req) => {
       auto_return: "approved",
       statement_descriptor: "XBRSTORE",
       payment_methods: {
-        installments: 12,
+        // Só permite parcelamento no cartão de crédito
+        installments: payment === "credit" ? 12 : 1,
+        // Filtra os tipos de pagamento permitidos
+        excluded_payment_types: excludedPaymentTypes,
       },
     };
 

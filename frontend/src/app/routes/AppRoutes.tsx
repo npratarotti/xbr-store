@@ -14,6 +14,7 @@ import { Wishlist } from "../../pages/Wishlist/Wishlist";
 import { PaymentSuccess } from "../../pages/PaymentSuccess/PaymentSuccess";
 import { PaymentFailure } from "../../pages/PaymentFailure/PaymentFailure";
 import { PaymentPending } from "../../pages/PaymentPending/PaymentPending";
+import { ResetPassword } from "../../pages/ResetPassword/ResetPassword";
 
 import { CartProvider } from "../providers/CartProvider";
 import { AuthProvider } from "../providers/AuthProvider";
@@ -24,6 +25,7 @@ import { Admin } from "../../pages/Admin/Admin";
 import { AdminRoute } from "./AdminRoute";
 
 import { Header } from "../../shared/components/layout/Header/Header";
+import { WhatsAppButton } from "../../shared/components/ui/WhatsAppButton/WhatsAppButton";
 
 export function AppRoutes() {
   return (
@@ -45,6 +47,7 @@ export function AppRoutes() {
                   <Route path="/wishlist" element={<Wishlist />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/order-success" element={<OrderSuccess />} />
 
                   {/* Pagamento Mercado Pago */}
@@ -64,6 +67,9 @@ export function AppRoutes() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
+
+              {/* Botão flutuante do WhatsApp — aparece em todas as páginas */}
+              <WhatsAppButton />
             </BrowserRouter>
           </WishlistProvider>
         </CartProvider>

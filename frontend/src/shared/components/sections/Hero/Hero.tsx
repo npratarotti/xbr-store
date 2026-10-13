@@ -1,8 +1,15 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../ui/Button";
 import { Container } from "../../layout/Container";
 
 export function Hero() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    requestAnimationFrame(() => setMounted(true));
+  }, []);
+
   return (
     <section className="relative overflow-hidden bg-background transition-colors duration-300">
       {/* Luzes do fundo */}
@@ -15,7 +22,13 @@ export function Hero() {
         <div className="relative grid items-center gap-10 px-4 py-10 lg:grid-cols-[1fr_1.3fr] lg:gap-6 lg:py-14 lg:pl-16 lg:pr-4">
 
           {/* Texto */}
-          <div>
+          <div
+            className={`transition-all duration-700 ease-out ${
+              mounted
+                ? "translate-y-0 opacity-100"
+                : "translate-y-6 opacity-0"
+            }`}
+          >
             <span className="inline-block rounded-full border border-violet-500/30 bg-violet-500/10 px-5 py-2 text-sm font-medium text-violet-300">
               🚀 Bem-vindo à XBR Store
             </span>
@@ -49,8 +62,15 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Notebook - agora visível em mobile também */}
-          <div className="relative flex justify-center lg:justify-center">
+          {/* Notebook */}
+          <div
+            className={`relative flex justify-center transition-all duration-1000 ease-out lg:justify-center ${
+              mounted
+                ? "translate-y-0 opacity-100"
+                : "translate-y-8 opacity-0"
+            }`}
+            style={{ transitionDelay: "150ms" }}
+          >
             <img
               src="/images/hero/hero-notebook.png"
               alt="Notebook Gamer"
