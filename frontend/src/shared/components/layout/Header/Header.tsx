@@ -143,6 +143,12 @@ export function Header() {
     goToAllResults(mobileSearchQuery);
   };
 
+  // Verifica se um link está ativo
+  const isActive = (path: string) => {
+    if (path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(path);
+  };
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 border-b border-border transition-all duration-300 ${
@@ -237,39 +243,48 @@ export function Header() {
 
           {/* Navegação desktop */}
           <nav className="hidden items-center gap-5 lg:flex">
-            <Link
-              to="/"
-              className="text-sm font-medium text-muted transition hover:text-text"
-            >
-              Início
-            </Link>
+            {[
+              { to: "/", label: "Início" },
+              { to: "/products", label: "Produtos" },
+              { to: "/wishlist", label: "Favoritos" },
+            ].map((item) => {
+              const active = isActive(item.to);
 
-            <Link
-              to="/products"
-              className="text-sm font-medium text-muted transition hover:text-text"
-            >
-              Produtos
-            </Link>
-
-            <Link
-              to="/wishlist"
-              className="relative text-sm font-medium text-muted transition hover:text-text"
-            >
-              Favoritos
-            </Link>
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`text-sm transition ${
+                    active
+                      ? "font-bold text-violet-400"
+                      : "font-medium text-muted hover:text-text"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
 
             {user ? (
               <>
                 <Link
                   to="/admin"
-                  className="hidden rounded-xl px-3 py-2 text-sm font-medium text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300 lg:block"
+                  className={`hidden rounded-xl px-3 py-2 text-sm transition lg:block ${
+                    isActive("/admin")
+                      ? "font-bold text-violet-400 bg-violet-500/10"
+                      : "font-medium text-violet-400 hover:bg-violet-500/10 hover:text-violet-300"
+                  }`}
                 >
                   Admin
                 </Link>
 
                 <Link
                   to="/profile"
-                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface hover:text-text"
+                  className={`rounded-xl px-3 py-2 text-sm transition ${
+                    isActive("/profile")
+                      ? "font-bold text-violet-400 bg-violet-500/10"
+                      : "font-medium text-muted hover:bg-surface hover:text-text"
+                  }`}
                 >
                   Minha conta
                 </Link>
@@ -285,7 +300,11 @@ export function Header() {
             ) : (
               <Link
                 to="/login"
-                className="rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface hover:text-text"
+                className={`rounded-xl px-3 py-2 text-sm transition ${
+                  isActive("/login")
+                    ? "font-bold text-violet-400 bg-violet-500/10"
+                    : "font-medium text-muted hover:bg-surface hover:text-text"
+                }`}
               >
                 Entrar
               </Link>
@@ -427,36 +446,39 @@ export function Header() {
           </div>
 
           <nav className="flex flex-col gap-1">
-            <Link
-              to="/"
-              onClick={closeMenu}
-              className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text"
-            >
-              Início
-            </Link>
+            {[
+              { to: "/", label: "Início" },
+              { to: "/products", label: "Produtos" },
+              { to: "/wishlist", label: "Favoritos" },
+            ].map((item) => {
+              const active = isActive(item.to);
 
-            <Link
-              to="/products"
-              onClick={closeMenu}
-              className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text"
-            >
-              Produtos
-            </Link>
-
-            <Link
-              to="/wishlist"
-              onClick={closeMenu}
-              className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text"
-            >
-              Favoritos
-            </Link>
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={closeMenu}
+                  className={`rounded-xl px-4 py-3 text-base transition ${
+                    active
+                      ? "font-bold text-violet-400 bg-violet-500/10"
+                      : "font-medium text-muted hover:bg-surface hover:text-text"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
 
             {user && (
               <>
                 <Link
                   to="/admin"
                   onClick={closeMenu}
-                  className="rounded-xl px-4 py-3 text-base font-medium text-violet-400 transition hover:bg-violet-500/10 hover:text-violet-300"
+                  className={`rounded-xl px-4 py-3 text-base transition ${
+                    isActive("/admin")
+                      ? "font-bold text-violet-400 bg-violet-500/10"
+                      : "font-medium text-violet-400 hover:bg-violet-500/10 hover:text-violet-300"
+                  }`}
                 >
                   Admin
                 </Link>
@@ -464,7 +486,11 @@ export function Header() {
                 <Link
                   to="/profile"
                   onClick={closeMenu}
-                  className="rounded-xl px-4 py-3 text-base font-medium text-muted transition hover:bg-surface hover:text-text"
+                  className={`rounded-xl px-4 py-3 text-base transition ${
+                    isActive("/profile")
+                      ? "font-bold text-violet-400 bg-violet-500/10"
+                      : "font-medium text-muted hover:bg-surface hover:text-text"
+                  }`}
                 >
                   Minha conta
                 </Link>
