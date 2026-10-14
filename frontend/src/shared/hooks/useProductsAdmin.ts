@@ -5,10 +5,12 @@ export type ProductInput = {
   category: string;
   price: number;
   image_url: string;
+  images?: string[];
   installment: string;
   rating: number;
   badge?: string | null;
   stock?: number | null;
+  description?: string | null;
 };
 
 /**

@@ -47,6 +47,7 @@ export function Product() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [toast, setToast] = useState<ToastState | null>(null);
+  const [activeImage, setActiveImage] = useState(0);
 
   const [userReview, setUserReview] = useState<{
     id: number;
@@ -99,6 +100,10 @@ export function Product() {
   useEffect(() => {
     setShowForm(false);
     setShowDeleteConfirm(false);
+  }, [productId]);
+
+  useEffect(() => {
+    setActiveImage(0);
   }, [productId]);
 
   useEffect(() => {
@@ -292,6 +297,14 @@ export function Product() {
     },
   ];
 
+  // ===== IMAGENS PARA A GALERIA =====
+  const galleryImages =
+    product.images && product.images.length > 0
+      ? product.images
+      : product.image
+        ? [product.image]
+        : [];
+
   return (
     <>
       {/* SEO dinâmico — title, description, OG image */}
@@ -319,20 +332,48 @@ export function Product() {
       <main className="min-h-screen bg-background pb-20 transition-colors duration-300">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2">
-            <div className="relative flex min-h-[500px] items-center justify-center rounded-3xl border border-border bg-surface/60 p-10">
-              <img
-                src={product.image}
-                alt={product.name}
-                className={`max-h-[450px] w-full object-contain ${
-                  isOutOfStock ? "opacity-40 grayscale" : ""
-                }`}
-              />
+            {/* GALERIA */}
+            <div className="relative flex flex-col gap-4">
+              {/* Imagem principal */}
+              <div className="relative flex min-h-[500px] items-center justify-center rounded-3xl border border-border bg-surface/60 p-10">
+                <img
+                  src={galleryImages[activeImage] ?? product.image}
+                  alt={product.name}
+                  className={`max-h-[450px] w-full object-contain transition-opacity duration-300 ${
+                    isOutOfStock ? "opacity-40 grayscale" : ""
+                  }`}
+                />
 
-              {isOutOfStock && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/60">
-                  <span className="rounded-full border border-red-500/40 bg-red-600/20 px-6 py-3 text-lg font-black uppercase tracking-wider text-red-300">
-                    Esgotado
-                  </span>
+                {isOutOfStock && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-black/60">
+                    <span className="rounded-full border border-red-500/40 bg-red-600/20 px-6 py-3 text-lg font-black uppercase tracking-wider text-red-300">
+                      Esgotado
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Miniaturas */}
+              {galleryImages.length > 1 && (
+                <div className="flex gap-3 overflow-x-auto pb-2">
+                  {galleryImages.map((img, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setActiveImage(index)}
+                      className={`flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 bg-background p-2 transition ${
+                        activeImage === index
+                          ? "border-violet-500 ring-2 ring-violet-500/30"
+                          : "border-border hover:border-violet-500/50"
+                      }`}
+                    >
+                      <img
+                        src={img}
+                        alt={`${product.name} - imagem ${index + 1}`}
+                        className="h-full w-full object-contain"
+                      />
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -406,9 +447,8 @@ export function Product() {
               )}
 
               <p className="mt-8 max-w-xl leading-7 text-muted">
-                Produto premium selecionado pela XBR Store, desenvolvido para
-                oferecer alto desempenho, qualidade e uma experiência
-                diferenciada.
+                {product.description ??
+                  "Produto premium selecionado pela XBR Store, desenvolvido para oferecer alto desempenho, qualidade e uma experiência diferenciada."}
               </p>
 
               <div className="mt-10 flex flex-col gap-3 sm:flex-row lg:max-w-md">

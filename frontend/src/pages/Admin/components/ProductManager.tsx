@@ -24,6 +24,11 @@ type ToastState = {
   type: "success" | "error";
 };
 
+type ImageSlot = {
+  url: string;
+  file: File | null;
+};
+
 function formatInstallment(price: number) {
   const value = price / 12;
   return `12x de ${value.toLocaleString("pt-BR", {
@@ -38,11 +43,11 @@ export function ProductManager() {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
   const [stock, setStock] = useState("");
+  const [description, setDescription] = useState("");
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  // Galeria de imagens (até 5)
+  const [images, setImages] = useState<ImageSlot[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -67,17 +72,6 @@ export function ProductManager() {
       setToast({ message: fetchError, type: "error" });
     }
   }, [fetchError]);
-
-  // Preview da imagem (a partir do arquivo OU da URL)
-  useEffect(() => {
-    if (imageFile) {
-      const url = URL.createObjectURL(imageFile);
-      setImagePreview(url);
-      return () => URL.revokeObjectURL(url);
-    }
-
-    setImagePreview(imageUrl);
-  }, [imageFile, imageUrl]);
 
   const validate = (): FormErrors => {
     const nextErrors: FormErrors = {};
@@ -104,8 +98,8 @@ export function ProductManager() {
       nextErrors.price = "O preço precisa ser maior que zero.";
     }
 
-    if (!imageFile && !imageUrl.trim()) {
-      nextErrors.image = "Envie uma imagem ou informe a URL.";
+    if (images.length === 0) {
+      nextErrors.image = "Envie pelo menos uma imagem.";
     }
 
     if (stock.trim()) {
@@ -125,10 +119,9 @@ export function ProductManager() {
     setName("");
     setCategory("");
     setPrice("");
-    setImageUrl("");
-    setImageFile(null);
-    setImagePreview("");
     setStock("");
+    setDescription("");
+    setImages([]);
     setEditingId(null);
     setErrors({});
 
@@ -138,38 +131,56 @@ export function ProductManager() {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files ?? []);
+    if (files.length === 0) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        image: "A imagem deve ter no máximo 2 MB.",
-      }));
-      return;
+    const available = 5 - images.length;
+    const toAdd = files.slice(0, available);
+
+    const newSlots: ImageSlot[] = [];
+
+    for (const file of toAdd) {
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors((prev) => ({
+          ...prev,
+          image: `"${file.name}" tem mais de 2 MB.`,
+        }));
+        continue;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        setErrors((prev) => ({
+          ...prev,
+          image: `"${file.name}" não é uma imagem.`,
+        }));
+        continue;
+      }
+
+      newSlots.push({
+        url: URL.createObjectURL(file),
+        file,
+      });
     }
 
-    if (!file.type.startsWith("image/")) {
-      setErrors((prev) => ({
-        ...prev,
-        image: "Envie apenas arquivos de imagem.",
-      }));
-      return;
-    }
-
-    setImageFile(file);
-    setImageUrl("");
+    setImages((prev) => [...prev, ...newSlots]);
     setErrors((prev) => ({ ...prev, image: undefined }));
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImageUrl("");
-    setImagePreview("");
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMakeCover = (index: number) => {
+    setImages((prev) => {
+      const newImages = [...prev];
+      const [moved] = newImages.splice(index, 1);
+      newImages.unshift(moved);
+      return newImages;
+    });
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -183,13 +194,19 @@ export function ProductManager() {
     setIsSubmitting(true);
 
     try {
-      // 1. Faz upload da imagem se for arquivo novo
-      let finalImageUrl = imageUrl;
+      // Faz upload de todas as imagens novas
+      const uploadedUrls: string[] = [];
 
-      if (imageFile) {
-        finalImageUrl = await uploadProductImage(imageFile);
+      for (const slot of images) {
+        if (slot.file) {
+          const url = await uploadProductImage(slot.file);
+          uploadedUrls.push(url);
+        } else {
+          uploadedUrls.push(slot.url);
+        }
       }
 
+      const coverUrl = uploadedUrls[0] ?? "";
       const stockValue = stock.trim() ? Number(stock) : null;
       const parsedPrice = Number(price);
 
@@ -197,26 +214,30 @@ export function ProductManager() {
         name: name.trim(),
         category: category.trim(),
         price: parsedPrice,
-        image_url: finalImageUrl,
+        image_url: coverUrl,
+        images: uploadedUrls,
         installment: formatInstallment(parsedPrice),
         rating: 5,
         badge: null,
         stock: stockValue,
+        description: description.trim() || null,
       };
 
-      // 2. Atualiza ou cria
+      // Atualiza ou cria
       if (editingId !== null) {
-        // Se trocou a imagem, deleta a antiga do Storage
         const currentProduct = products.find((p) => p.id === editingId);
+
+        // Se trocou a capa, deleta a antiga do Storage
         if (
           currentProduct &&
-          imageFile &&
-          currentProduct.image !== finalImageUrl
+          currentProduct.image &&
+          coverUrl &&
+          currentProduct.image !== coverUrl
         ) {
           try {
             await deleteProductImage(currentProduct.image);
           } catch {
-            // ignora erro de delete — o produto já foi atualizado
+            // ignora
           }
         }
 
@@ -254,11 +275,20 @@ export function ProductManager() {
     setName(product.name);
     setCategory(product.category);
     setPrice(product.price.toString());
-    setImageUrl(product.image);
-    setImageFile(null);
     setStock(
       typeof product.stock === "number" ? product.stock.toString() : ""
     );
+    setDescription(product.description ?? "");
+
+    // Carrega as imagens: prioriza o array, se não tiver, usa a capa
+    const existingImages =
+      product.images && product.images.length > 0
+        ? product.images
+        : product.image
+          ? [product.image]
+          : [];
+
+    setImages(existingImages.map((url) => ({ url, file: null })));
     setErrors({});
 
     requestAnimationFrame(() => {
@@ -278,14 +308,20 @@ export function ProductManager() {
     setIsSubmitting(true);
 
     try {
-      // Deleta o produto
       await deleteProduct(productToDelete.id);
 
-      // Tenta deletar a imagem do Storage (silencioso se falhar)
-      try {
-        await deleteProductImage(productToDelete.image);
-      } catch {
-        // ignora
+      // Deleta todas as imagens do Storage
+      const urlsToDelete =
+        productToDelete.images && productToDelete.images.length > 0
+          ? productToDelete.images
+          : [productToDelete.image];
+
+      for (const url of urlsToDelete) {
+        try {
+          await deleteProductImage(url);
+        } catch {
+          // ignora
+        }
       }
 
       if (editingId === productToDelete.id) {
@@ -419,37 +455,92 @@ export function ProductManager() {
               )}
             </div>
 
-            {/* Upload de imagem */}
+            {/* Descrição */}
             <div className="md:col-span-2">
               <label className="mb-2 block text-sm font-medium text-muted">
-                Imagem do produto *
+                Descrição do produto
+              </label>
+              <textarea
+                placeholder="Descreva o produto em 1-3 frases..."
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={4}
+                className={`${inputClass(false)} resize-none`}
+              />
+              <p className="mt-2 text-xs text-muted/70">
+                Ajuda o Google a encontrar sua loja.
+              </p>
+            </div>
+
+            {/* Upload de imagens (até 5) */}
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-muted">
+                Imagens do produto (até 5) *
               </label>
 
-              {imagePreview ? (
-                <div className="relative overflow-hidden rounded-2xl border border-border bg-background p-4">
-                  <img
-                    src={imagePreview}
-                    alt="Prévia"
-                    className="mx-auto max-h-48 object-contain"
-                  />
+              {images.length > 0 && (
+                <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+                  {images.map((slot, index) => (
+                    <div
+                      key={index}
+                      className={`group relative overflow-hidden rounded-2xl border-2 bg-background p-2 transition ${
+                        index === 0
+                          ? "border-violet-500"
+                          : "border-border"
+                      }`}
+                    >
+                      <img
+                        src={slot.url}
+                        alt={`Imagem ${index + 1}`}
+                        className="aspect-square w-full object-contain"
+                      />
 
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute right-3 top-3 rounded-full border border-border bg-background/90 px-3 py-1 text-xs font-semibold text-text backdrop-blur transition hover:border-red-500/50 hover:text-red-400"
-                  >
-                    Remover
-                  </button>
+                      {index === 0 && (
+                        <span className="absolute left-1 top-1 rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                          CAPA
+                        </span>
+                      )}
+
+                      <div className="absolute right-1 top-1 flex gap-1">
+                        {index !== 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleMakeCover(index)}
+                            title="Tornar capa"
+                            className="flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-xs backdrop-blur transition hover:bg-violet-600 hover:text-white"
+                          >
+                            ★
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          title="Remover"
+                          className="flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-xs backdrop-blur transition hover:bg-red-500 hover:text-white"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-background px-5 py-8 text-sm text-muted transition hover:border-violet-500/50 hover:text-violet-400">
+              )}
+
+              {images.length < 5 && (
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-background px-5 py-6 text-sm text-muted transition hover:border-violet-500/50 hover:text-violet-400">
                   <span>📷</span>
-                  <span>Escolher imagem (até 2 MB)</span>
+                  <span>
+                    {images.length === 0
+                      ? "Escolher imagens (até 5)"
+                      : `Adicionar mais (${5 - images.length} restantes)`}
+                  </span>
 
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handleFileChange}
                     className="hidden"
                   />
@@ -463,19 +554,9 @@ export function ProductManager() {
               )}
 
               <p className="mt-2 text-xs text-muted/70">
-                Ou cole uma URL externa abaixo (opcional)
+                A primeira imagem é a capa (aparece no card e no carrinho).
+                Clique em ★ pra mudar a capa.
               </p>
-
-              <input
-                type="text"
-                placeholder="https://... (URL externa)"
-                value={imageUrl}
-                onChange={(event) => {
-                  setImageUrl(event.target.value);
-                  if (event.target.value) setImageFile(null);
-                }}
-                className={`mt-2 ${inputClass(false)}`}
-              />
             </div>
           </div>
 
@@ -541,77 +622,98 @@ export function ProductManager() {
             </div>
           ) : (
             <div className="space-y-4">
-              {products.map((product) => (
-                <article
-                  key={product.id}
-                  className="group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
-                >
-                  <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
+              {products.map((product) => {
+                const totalImages =
+                  product.images && product.images.length > 0
+                    ? product.images.length
+                    : product.image
+                      ? 1
+                      : 0;
 
-                  <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-background">
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="h-full w-full object-contain p-2"
-                      />
-                    ) : (
-                      <span className="text-3xl">📦</span>
-                    )}
-                  </div>
+                return (
+                  <article
+                    key={product.id}
+                    className="group relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-border bg-gradient-to-b from-surface to-background p-5 transition-all duration-500 hover:-translate-y-1 hover:border-violet-500/30 md:flex-row md:items-center"
+                  >
+                    <div className="pointer-events-none absolute -top-20 right-0 h-40 w-40 rounded-full bg-violet-600/10 blur-3xl transition-all duration-500 group-hover:bg-violet-600/25" />
 
-                  <div className="relative min-w-0 flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
-                      {product.category}
-                    </p>
+                    <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-background">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="h-full w-full object-contain p-2"
+                        />
+                      ) : (
+                        <span className="text-3xl">📦</span>
+                      )}
 
-                    <h3 className="mt-1 truncate text-lg font-bold text-text">
-                      {product.name}
-                    </h3>
+                      {totalImages > 1 && (
+                        <span className="absolute bottom-1 right-1 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white">
+                          {totalImages} fotos
+                        </span>
+                      )}
+                    </div>
 
-                    <p className="mt-2 text-lg font-black text-text">
-                      {product.price.toLocaleString("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      })}
-                    </p>
-
-                    {typeof product.stock === "number" && (
-                      <p
-                        className={`mt-1 text-xs font-semibold ${
-                          product.stock === 0
-                            ? "text-red-400"
-                            : product.stock <= 5
-                              ? "text-amber-400"
-                              : "text-muted"
-                        }`}
-                      >
-                        {product.stock === 0
-                          ? "Esgotado"
-                          : `${product.stock} em estoque`}
+                    <div className="relative min-w-0 flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">
+                        {product.category}
                       </p>
-                    )}
-                  </div>
 
-                  <div className="relative flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(product)}
-                      className="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-5 py-3 text-sm font-semibold text-violet-400 transition hover:bg-violet-500/20"
-                    >
-                      Editar
-                    </button>
+                      <h3 className="mt-1 truncate text-lg font-bold text-text">
+                        {product.name}
+                      </h3>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(product)}
-                      className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500/20"
-                    >
-                      Excluir
-                    </button>
-                  </div>
-                </article>
-              ))}
+                      {product.description && (
+                        <p className="mt-2 line-clamp-2 text-sm text-muted">
+                          {product.description}
+                        </p>
+                      )}
+
+                      <p className="mt-2 text-lg font-black text-text">
+                        {product.price.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </p>
+
+                      {typeof product.stock === "number" && (
+                        <p
+                          className={`mt-1 text-xs font-semibold ${
+                            product.stock === 0
+                              ? "text-red-400"
+                              : product.stock <= 5
+                                ? "text-amber-400"
+                                : "text-muted"
+                          }`}
+                        >
+                          {product.stock === 0
+                            ? "Esgotado"
+                            : `${product.stock} em estoque`}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="relative flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(product)}
+                        className="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-5 py-3 text-sm font-semibold text-violet-400 transition hover:bg-violet-500/20"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(product)}
+                        className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500/20"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>

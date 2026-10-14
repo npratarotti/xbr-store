@@ -7,11 +7,13 @@ export type Product = {
   category: string;
   price: number;
   image: string;
+  images?: string[];
   installment: string;
   rating: number;
   reviewCount: number;
   badge?: string;
   stock?: number;
+  description?: string;
 };
 
 type UseProductsResult = {
@@ -27,11 +29,13 @@ function mapRow(row: any): Product {
     category: row.category,
     price: Number(row.price),
     image: row.image_url,
+    images: Array.isArray(row.images) ? row.images : [],
     installment: row.installment,
     rating: Number(row.rating),
     reviewCount: Number(row.review_count ?? 0),
     badge: row.badge ?? undefined,
     stock: typeof row.stock === "number" ? row.stock : undefined,
+    description: row.description ?? undefined,
   };
 }
 
